@@ -2,6 +2,7 @@ import Page from '@/components/HOC/page';
 import { routeConfig } from '@/config/routeConfig';
 import { authService } from '@/utils/authService';
 import { Button, Form, Input, message, Typography } from 'antd';
+import axios from 'axios';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -37,15 +38,35 @@ const LoginPage: React.FC = () => {
       navigate(routeConfig.dashboard.path());
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Handle validation errors
         error.errors.forEach((err) => {
           message.error(err.message);
         });
-      } else if (error instanceof Error) {
-        // Handle API errors
-        message.error(error.message || 'Login failed');
+      } else if (axios.isAxiosError(error)) {
+        // Handle backend validation errors
+        if (error.response?.data?.errors) {
+          // Set form field errors
+          const backendErrors = error.response.data.errors;
+          const formErrors: { [key: string]: { errors: string[] } } = {};
+
+          Object.entries(backendErrors).forEach(([field, message]) => {
+            formErrors[field] = {
+              errors: [message as string],
+            };
+          });
+
+          console.log('🚀 ~ onFinish ~ formErrors:', formErrors);
+
+          form.setFields(
+            Object.entries(formErrors).map(([field, error]) => ({
+              name: field,
+              errors: error.errors,
+            }))
+          );
+        } else {
+          message.error('Login failed. Please try again.');
+        }
       } else {
-        message.error('An unexpected error occurred');
+        message.error('An unexpected error occurred. Please try again.');
       }
     }
   };

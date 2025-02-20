@@ -119,19 +119,11 @@ export class AuthService extends BaseService<IUser> {
         // Update existing unverified user
         user.fullName = userData.fullName.trim();
         user.officeId = userData.officeId;
-
-        // Hash the new password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(userData.password, salt);
-        user.password = hashedPassword;
       } else {
         // Create new user
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(userData.password, salt);
-
         user = await User.create({
           email: userData.email,
-          password: hashedPassword,
+          password: userData.password,
           fullName: userData.fullName.trim(),
           officeId: userData.officeId,
           isEmailVerified: false,
@@ -243,33 +235,35 @@ export class AuthService extends BaseService<IUser> {
     if (!user) {
       throw new AppError('Invalid credentials', 401, {
         email: 'Invalid email or password',
-      });
-    }
-
-    if (!user.password || !user.comparePassword) {
-      throw new AppError('Please complete your registration', 403, {
-        email: 'Please complete your registration process',
-      });
-    }
-
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      throw new AppError('Invalid credentials', 401, {
         password: 'Invalid email or password',
       });
     }
 
-    if (!user.isEmailVerified) {
-      throw new AppError('Please verify your email first', 403, {
-        email: 'Please verify your email address to continue',
+    // Check if email is verified
+    // if (!user.isEmailVerified) {
+    //   throw new AppError('Please verify your email first', 403, {
+    //     email: 'Please verify your email first',
+    //   });
+    // }
+
+    // Check if account is approved
+    // if (!user.isApproved) {
+    //   throw new AppError('Your account is pending approval', 403, {
+    //     email: 'Your account is pending approval',
+    //   });
+    // }
+
+    // Compare password using bcrypt directly
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError('Invalid credentials', 401, {
+        password: 'Invalid email or password',
+        email: 'Invalid email or password',
       });
     }
 
-    const tokens = this.generateTokens(user);
-
-    await user.save();
-
-    return { ...tokens };
+    // Generate tokens
+    return this.generateTokens(user);
   }
 
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
@@ -372,14 +366,10 @@ export class AuthService extends BaseService<IUser> {
       throw new Error('User with this email already exists');
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     // Create new user
     const user = await this.model.create({
       email,
-      password: hashedPassword,
+      password,
       fullName,
       officeId,
       isApproved: false,

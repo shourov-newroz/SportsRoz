@@ -250,17 +250,25 @@ publicRouter
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/TokenResponse'
+ *       400:
+ *         description: Validation error
  *       401:
  *         description: Invalid credentials
  *       403:
- *         description: Email not verified
+ *         description: Account not approved or email not verified
  */
 publicRouter
   .route('/auth/login')
   .post(
     [
-      body('email').isEmail().withMessage('Please enter a valid email'),
-      body('password').notEmpty().withMessage('Password is required'),
+      body('email')
+        .trim()
+        .notEmpty()
+        .withMessage('Email is required')
+        .isEmail()
+        .withMessage('Please enter a valid email')
+        .normalizeEmail(),
+      body('password').trim().notEmpty().withMessage('Password is required'),
     ],
     authController.login,
   );
@@ -345,6 +353,27 @@ publicRouter
     ],
     authController.resetPassword,
   );
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+publicRouter.route('/auth/logout').post(authController.logout);
 
 // Private routes (protected)
 privateRouter.use(protect);

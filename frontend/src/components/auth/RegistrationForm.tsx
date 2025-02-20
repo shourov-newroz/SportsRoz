@@ -176,7 +176,7 @@ const RegistrationForm: React.FC = () => {
         label="Office ID"
         rules={[{ required: true, message: 'Please input your office ID!' }]}
       >
-        <Input prefix={<IdcardOutlined />} />
+        <Input prefix={<IdcardOutlined />} type="number" />
       </Form.Item>
 
       <Form.Item>

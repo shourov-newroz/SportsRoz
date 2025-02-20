@@ -18,6 +18,7 @@ class AuthController extends BaseController {
     this.refreshToken = this.refreshToken.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
     this.getMe = this.getMe.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   private formatValidationErrors(errors: ValidationError[]): Record<string, string> {
@@ -66,7 +67,7 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const { token, otp } = req.body.attributes;
+      const { token, otp } = req.body;
       const result = await this.service.verifyOTP(token, otp.toString());
 
       return { message: result.message };
@@ -99,7 +100,7 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const { email, password } = req.body.attributes;
+      const { email, password } = req.body;
       const result = await this.service.signIn(email, password);
 
       if ('passwordChangeRequired' in result) {
@@ -109,12 +110,10 @@ class AuthController extends BaseController {
       }
 
       return {
-        body: {
-          accessToken: result.accessToken,
-          accessTokenExpiresIn: result.accessTokenExpiresIn,
-          refreshToken: result.refreshToken,
-          refreshTokenExpiresIn: result.refreshTokenExpiresIn,
-        },
+        accessToken: result.accessToken,
+        accessTokenExpiresIn: result.accessTokenExpiresIn,
+        refreshToken: result.refreshToken,
+        refreshTokenExpiresIn: result.refreshTokenExpiresIn,
       };
     });
   }
@@ -127,7 +126,7 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const { refreshToken } = req.body.attributes;
+      const { refreshToken } = req.body;
       const tokens = await this.service.refreshToken(refreshToken);
 
       return { accessTokenResponse: tokens };
@@ -142,7 +141,7 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const { email, tempPassword, newPassword } = req.body.attributes;
+      const { email, tempPassword, newPassword } = req.body;
       await this.service.resetPassword(email, tempPassword, newPassword);
 
       return { message: 'Password reset successfully' };
@@ -162,6 +161,14 @@ class AuthController extends BaseController {
           name: user.fullName,
         },
       };
+    });
+  }
+
+  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      // No need to do anything special here since we're using JWTs
+      // The frontend will remove the tokens
+      return { message: 'Logged out successfully' };
     });
   }
 }

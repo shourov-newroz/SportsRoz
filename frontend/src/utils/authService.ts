@@ -12,7 +12,6 @@ import {
 } from '@/types/auth.types';
 import { IApiResponse } from '@/types/common';
 import { localStorageUtil } from '@/utils/localStorageUtil';
-import axios from 'axios';
 
 class AuthService {
   private static instance: AuthService;
@@ -31,31 +30,24 @@ class AuthService {
 
   // Auth Methods
   public async login(credentials: ILoginCredentials): Promise<IUser> {
-    try {
-      const response = await api.post<IApiResponse<ILoginResponse>>(
-        BACKEND_ENDPOINTS.AUTH.LOGIN,
-        credentials
-      );
+    const response = await api.post<IApiResponse<ILoginResponse>>(
+      BACKEND_ENDPOINTS.AUTH.LOGIN,
+      credentials
+    );
 
-      const { data, type, permissions } = response.data.data;
-      const user: IUser = {
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        accessTokenExpiresIn: data.accessTokenExpiresIn,
-        refreshTokenExpiresIn: data.refreshTokenExpiresIn,
-        permissions: [...getPermissionsByUserType(type, permissions as IPermissionValue[])],
-        name: type,
-        type: type,
-        email: credentials.email,
-      };
-      this.saveUser(user);
-      return user;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.error?.reason.join(', ') || 'Login failed');
-      }
-      throw error;
-    }
+    const { data, type, permissions } = response.data.data;
+    const user: IUser = {
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      accessTokenExpiresIn: data.accessTokenExpiresIn,
+      refreshTokenExpiresIn: data.refreshTokenExpiresIn,
+      permissions: [...getPermissionsByUserType(type, permissions as IPermissionValue[])],
+      name: type,
+      type: type,
+      email: credentials.email,
+    };
+    this.saveUser(user);
+    return user;
   }
 
   // Token Management
