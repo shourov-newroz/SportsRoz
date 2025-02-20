@@ -15,13 +15,13 @@ export const registerSchema = z
         passwordRegex,
         'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character',
       ),
-    passwordConfirmation: z.string(),
+    confirmPassword: z.string(),
     fullName: z.string().min(1, 'Full name is required'),
     officeId: z.string().min(1, 'Office ID is required'),
   })
-  .refine((data) => data.password === data.passwordConfirmation, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['passwordConfirmation'],
+    path: ['confirmPassword'],
   });
 
 export const loginSchema = z.object({

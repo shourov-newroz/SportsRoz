@@ -8,6 +8,7 @@ const AuthLayout = lazy(() => import('@/components/layouts/AuthLayout'));
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'));
 const Login = lazy(() => import('@/pages/auth/LoginPage'));
 const Register = lazy(() => import('@/pages/auth/RegisterPage'));
+const OTPVerification = lazy(() => import('@/pages/auth/OTPVerificationPage'));
 
 export const publicRoutes: AppRoute[] = [
   {
@@ -32,6 +33,11 @@ export const publicRoutes: AppRoute[] = [
       {
         routePath: routeConfig.login.routePath,
         element: React.createElement(Login),
+        isPublic: true,
+      },
+      {
+        routePath: routeConfig.verifyOTP.routePath,
+        element: React.createElement(OTPVerification),
         isPublic: true,
       },
     ],

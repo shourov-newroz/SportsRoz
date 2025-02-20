@@ -36,9 +36,9 @@ export const routeConfig = {
     isPublic: true,
   },
   verifyOTP: {
-    routePath: '/verify-otp',
-    path: () => '/verify-otp',
-    title: 'Verify OTP',
+    routePath: '/otp-verify',
+    path: () => '/otp-verify',
+    title: 'OTP Verification',
     isPublic: true,
   },
   resetPassword: {

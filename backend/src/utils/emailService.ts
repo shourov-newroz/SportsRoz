@@ -46,6 +46,35 @@ class EmailService {
       throw new Error('Failed to send temporary password email');
     }
   }
+
+  async sendOTP(to: string, firstName: string, otp: string): Promise<void> {
+    try {
+      const mailOptions = {
+        from: env.EMAIL_FROM,
+        to,
+        subject: 'Your Verification Code - SportsRoz',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Welcome to SportsRoz</h2>
+            <p>Dear ${firstName},</p>
+            <p>Your verification code is:</p>
+            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <code style="font-size: 24px; color: #333;">${otp}</code>
+            </div>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you did not request this code, please ignore this email.</p>
+            <p style="margin-top: 30px;">Best regards,<br>SportsRoz Team</p>
+          </div>
+        `,
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`OTP email sent to ${to}`);
+    } catch (error) {
+      logger.error('Error sending OTP email:', error);
+      throw new Error('Failed to send OTP email');
+    }
+  }
 }
 
 export default new EmailService();

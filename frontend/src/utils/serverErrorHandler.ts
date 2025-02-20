@@ -8,7 +8,9 @@ const serverErrorHandler = (
 ) => {
   if (error.response && error.response.data) {
     const { data } = error.response;
-    console.log('🚀 ~ data:', data);
+    if ('errors' in data) {
+      console.log('🚀 ~ data:', data?.errors);
+    }
     const serverErrors: IFormErrors = {};
 
     // // Populate form errors from the server if present

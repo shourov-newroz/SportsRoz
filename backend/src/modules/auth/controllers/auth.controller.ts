@@ -50,13 +50,10 @@ class AuthController extends BaseController {
 
       res.status(201);
       return {
-        message: 'Registration successful. Please check your email for verification code.',
-        data: {
-          userId: result.user._id,
-          token: result.token,
-          expiryTime: result.expiryTime,
-          intervalTime: result.intervalTime,
-        },
+        userId: result.user._id,
+        token: result.token,
+        expiryTime: result.expiryTime,
+        intervalTime: result.intervalTime,
       };
     });
   }

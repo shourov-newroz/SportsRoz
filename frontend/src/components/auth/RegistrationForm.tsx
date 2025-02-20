@@ -1,6 +1,9 @@
 import BACKEND_ENDPOINTS from '@/api/endpoints';
+import { OTP_STORAGE_KEYS } from '@/config/config';
 import { routeConfig } from '@/config/routeConfig';
 import { sendPostRequest } from '@/config/swrConfig';
+import { OTPResponse } from '@/lib/validations/auth';
+import { IApiResponse } from '@/types/common';
 import { IdcardOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input, message } from 'antd';
 import axios from 'axios';
@@ -22,13 +25,13 @@ const registrationSchema = z
         passwordRegex,
         'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character'
       ),
-    passwordConfirmation: z.string(),
+    confirmPassword: z.string(),
     fullName: z.string().min(1, 'Full name is required'),
     officeId: z.string().min(1, 'Office ID is required'),
   })
-  .refine((data) => data.password === data.passwordConfirmation, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['passwordConfirmation'],
+    path: ['confirmPassword'],
   });
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
@@ -36,8 +39,34 @@ type RegistrationFormData = z.infer<typeof registrationSchema>;
 const RegistrationForm: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const {
+    OTP_TOKEN_KEY,
+    OTP_EXPIRY_KEY,
+    OTP_INTERVAL_KEY,
+    OTP_EXPIRY_TIMESTAMP_KEY,
+    OTP_INTERVAL_TIMESTAMP_KEY,
+  } = OTP_STORAGE_KEYS;
 
-  const { trigger, isMutating } = useSWRMutation(BACKEND_ENDPOINTS.AUTH.REGISTER, sendPostRequest);
+  const { trigger, isMutating } = useSWRMutation(BACKEND_ENDPOINTS.AUTH.REGISTER, sendPostRequest, {
+    onSuccess: (response: IApiResponse<OTPResponse>) => {
+      const { token, expiryTime, intervalTime } = response.data;
+      // Store token, expiry and interval times for OTP verification
+      sessionStorage.setItem(OTP_TOKEN_KEY, token);
+      sessionStorage.setItem(OTP_EXPIRY_KEY, expiryTime.toString());
+      sessionStorage.setItem(OTP_INTERVAL_KEY, intervalTime.toString());
+      const timestamp = Date.now() + expiryTime * 1000;
+      sessionStorage.setItem(OTP_EXPIRY_TIMESTAMP_KEY, timestamp.toString());
+
+      const intervalTimestamp = sessionStorage.getItem(OTP_INTERVAL_TIMESTAMP_KEY);
+      if (!intervalTimestamp) {
+        const timestamp = Date.now() + intervalTime * 1000;
+        sessionStorage.setItem(OTP_INTERVAL_TIMESTAMP_KEY, timestamp.toString());
+      }
+
+      // Navigate to login page
+      navigate(routeConfig.login.path());
+    },
+  });
 
   const onFinish = async (values: RegistrationFormData) => {
     try {
@@ -49,15 +78,11 @@ const RegistrationForm: React.FC = () => {
         fullName: values.fullName,
         email: values.email,
         password: values.password,
-        passwordConfirmation: values.passwordConfirmation,
+        confirmPassword: values.confirmPassword,
         officeId: values.officeId,
       };
 
-      // Call registration API
-      await trigger(registrationData);
-
-      message.success('Registration successful! Please wait for admin approval.');
-      navigate(routeConfig.login.path());
+      trigger(registrationData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
@@ -120,7 +145,7 @@ const RegistrationForm: React.FC = () => {
       </Form.Item>
 
       <Form.Item
-        name="passwordConfirmation"
+        name="confirmPassword"
         label="Confirm Password"
         dependencies={['password']}
         rules={[

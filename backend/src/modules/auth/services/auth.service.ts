@@ -4,7 +4,6 @@ import { Document } from 'mongoose';
 import validateEnv from '../../../config/env';
 import { AppError } from '../../../middleware/errorHandler';
 import { BaseService } from '../../../utils/baseService';
-import emailService from '../../../utils/emailService';
 import logger from '../../../utils/logger';
 import User, { IUser } from '../models/user.model';
 
@@ -177,17 +176,6 @@ export class AuthService extends BaseService<IUser> {
     }
   }
 
-  private generateTempPassword(): string {
-    // Generate a random password with letters, numbers, and special characters
-    const length = 10;
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < length; i++) {
-      password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
-  }
-
   async verifyOTP(token: string, otp: string): Promise<{ message: string }> {
     try {
       const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
@@ -210,25 +198,13 @@ export class AuthService extends BaseService<IUser> {
       }
 
       // Generate temporary password
-      // const tempPassword = this.generateTempPassword();
-      const tempPassword = '123456';
-      user.password = tempPassword;
       user.isEmailVerified = true;
       user.otp = undefined;
       user.otpExpiresAt = undefined;
       await user.save();
 
-      // Send email with temporary password
-      try {
-        logger.info(`Temporary password sent to ${user.email} password is ${tempPassword}`);
-        await emailService.sendTempPassword(user.email, user.fullName, tempPassword);
-      } catch (error) {
-        logger.error('Failed to send temporary password email:', error);
-        // Don't throw error here, just log it. The user is still verified.
-      }
-
       return {
-        message: 'OTP verified successfully. Please check your email for temporary password.',
+        message: 'OTP verified successfully.',
       };
     } catch (error) {
       logger.error('Error verifying OTP:', { error, token });
