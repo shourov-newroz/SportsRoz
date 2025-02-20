@@ -1,7 +1,7 @@
 import BACKEND_ENDPOINTS from '@/api/endpoints';
 import api from '@/config/apiConfig';
 import { CLIENT_ID, CLIENT_SECRET, LOCAL_STORAGE_KEYS } from '@/config/config';
-import { getPermissionsByUserType, IPermissionValue } from '@/config/permission';
+import { getPermissionsByUserType } from '@/config/permission';
 import { routeConfig } from '@/config/routeConfig';
 import {
   ILoginCredentials,
@@ -35,16 +35,25 @@ class AuthService {
       credentials
     );
 
-    const { data, type, permissions } = response.data.data;
+    const {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresIn,
+      refreshTokenExpiresIn,
+      fullName,
+      officeId,
+      email,
+    } = response.data.data;
     const user: IUser = {
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      accessTokenExpiresIn: data.accessTokenExpiresIn,
-      refreshTokenExpiresIn: data.refreshTokenExpiresIn,
-      permissions: [...getPermissionsByUserType(type, permissions as IPermissionValue[])],
-      name: type,
-      type: type,
-      email: credentials.email,
+      accessToken,
+      refreshToken,
+      accessTokenExpiresIn,
+      refreshTokenExpiresIn,
+      permissions: [...getPermissionsByUserType('System Admin', [])],
+      fullName,
+      officeId,
+      type: 'System Admin',
+      email,
     };
     this.saveUser(user);
     return user;

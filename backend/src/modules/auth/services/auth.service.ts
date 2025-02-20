@@ -16,6 +16,12 @@ interface TokenResponse {
   refreshTokenExpiresIn: number;
 }
 
+interface LoginResponse extends TokenResponse {
+  email: string;
+  fullName: string;
+  officeId: string;
+}
+
 interface SignUpRequest {
   fullName: string;
   email: string;
@@ -227,45 +233,6 @@ export class AuthService extends BaseService<IUser> {
     return otp;
   }
 
-  async signIn(
-    email: string,
-    password: string,
-  ): Promise<TokenResponse | { passwordChangeRequired: boolean }> {
-    const user = await this.findOne({ email: email });
-    if (!user) {
-      throw new AppError('Invalid credentials', 401, {
-        email: 'Invalid email or password',
-        password: 'Invalid email or password',
-      });
-    }
-
-    // Check if email is verified
-    // if (!user.isEmailVerified) {
-    //   throw new AppError('Please verify your email first', 403, {
-    //     email: 'Please verify your email first',
-    //   });
-    // }
-
-    // Check if account is approved
-    // if (!user.isApproved) {
-    //   throw new AppError('Your account is pending approval', 403, {
-    //     email: 'Your account is pending approval',
-    //   });
-    // }
-
-    // Compare password using bcrypt directly
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new AppError('Invalid credentials', 401, {
-        password: 'Invalid email or password',
-        email: 'Invalid email or password',
-      });
-    }
-
-    // Generate tokens
-    return this.generateTokens(user);
-  }
-
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
     const user = await this.findOne({
       refreshToken,
@@ -326,35 +293,45 @@ export class AuthService extends BaseService<IUser> {
     }
   }
 
-  async login(email: string, password: string): Promise<TokenResponse> {
-    try {
-      // Find user by email
-      const user = await this.findOne({ email });
-      if (!user) {
-        throw new AppError('Invalid credentials', 401);
-      }
-
-      // Verify password
-      const isPasswordValid = await user.comparePassword(password);
-      if (!isPasswordValid) {
-        throw new AppError('Invalid credentials', 401);
-      }
-
-      if (!user.isEmailVerified) {
-        throw new AppError('Please verify your email to access this resource.', 403, {
-          code: 'EMAIL_NOT_VERIFIED',
-          message: 'Email verification required',
-        });
-      }
-
-      // Generate tokens
-      return this.generateTokens(user);
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new AppError('Error during login', 500);
+  async login(email: string, password: string): Promise<LoginResponse> {
+    const user = await this.findOne({ email: email });
+    if (!user) {
+      throw new AppError('Invalid credentials', 401, {
+        email: 'Invalid email or password',
+        password: 'Invalid email or password',
+      });
     }
+
+    // Check if email is verified
+    // if (!user.isEmailVerified) {
+    //   throw new AppError('Please verify your email first', 403, {
+    //     email: 'Please verify your email first',
+    //   });
+    // }
+
+    // Check if account is approved
+    // if (!user.isApproved) {
+    //   throw new AppError('Your account is pending approval', 403, {
+    //     email: 'Your account is pending approval',
+    //   });
+    // }
+
+    // Compare password using bcrypt directly
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError('Invalid credentials', 401, {
+        password: 'Invalid email or password',
+        email: 'Invalid email or password',
+      });
+    }
+
+    // Generate tokens
+    return {
+      ...this.generateTokens(user),
+      email: user.email,
+      fullName: user.fullName,
+      officeId: user.officeId,
+    };
   }
 
   async register(data: RegisterData): Promise<Omit<IUser & Document, 'password'>> {

@@ -101,7 +101,7 @@ class AuthController extends BaseController {
       }
 
       const { email, password } = req.body;
-      const result = await this.service.signIn(email, password);
+      const result = await this.service.login(email, password);
 
       if ('passwordChangeRequired' in result) {
         return {
@@ -110,6 +110,9 @@ class AuthController extends BaseController {
       }
 
       return {
+        email: result.email,
+        fullName: result.fullName,
+        officeId: result.officeId,
         accessToken: result.accessToken,
         accessTokenExpiresIn: result.accessTokenExpiresIn,
         refreshToken: result.refreshToken,

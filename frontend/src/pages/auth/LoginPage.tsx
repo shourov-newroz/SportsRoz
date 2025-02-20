@@ -1,6 +1,6 @@
 import Page from '@/components/HOC/page';
 import { routeConfig } from '@/config/routeConfig';
-import { authService } from '@/utils/authService';
+import useAuth from '@/hooks/useAuth';
 import { Button, Form, Input, message, Typography } from 'antd';
 import axios from 'axios';
 import React from 'react';
@@ -21,6 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const { login } = useAuth();
 
   const onFinish = async (values: LoginFormData) => {
     try {
@@ -28,11 +29,7 @@ const LoginPage: React.FC = () => {
       loginSchema.parse(values);
 
       // Send login request
-      const response = await authService.login(values);
-
-      // Store tokens
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
+      await login(values);
 
       message.success('Login successful!');
       navigate(routeConfig.dashboard.path());

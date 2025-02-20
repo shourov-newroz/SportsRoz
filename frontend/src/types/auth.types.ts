@@ -7,17 +7,19 @@ export interface ITokenData {
   refreshTokenExpiresIn: number;
 }
 
-export interface ILoginResponse {
-  data: ITokenData;
+export interface ILoginResponse extends ITokenData {
   type: IUserType;
-  role: string;
+  fullName: string;
+  email: string;
+  officeId: string;
   permissions: string[];
 }
 
 export interface IUser {
   // id: string;
   email: string;
-  name: string;
+  fullName: string;
+  officeId: string;
   type: IUserType;
   permissions: IPermissionValue[];
   accessToken: string;
