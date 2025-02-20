@@ -52,48 +52,46 @@ const LoginPage: React.FC = () => {
 
   return (
     <Page>
-      <div className="flex flex-col space-y-8">
-        <div className="flex flex-col space-y-2 text-center">
-          <Typography.Title level={3} className="text-gray-900 m-0">
-            Welcome Back
-          </Typography.Title>
-          <Typography.Paragraph>Please enter your credentials to sign in</Typography.Paragraph>
-        </div>
-
-        <Form form={form} name="login" onFinish={onFinish} layout="vertical" requiredMark={false}>
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              { required: true, message: 'Please input your email!' },
-              { pattern: emailRegex, message: 'Please enter a valid email address' },
-            ]}
-          >
-            <Input type="email" placeholder="Enter your email" />
-          </Form.Item>
-
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
-          >
-            <Input.Password placeholder="Enter your password" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" className="w-full mt-2">
-              Sign In
-            </Button>
-          </Form.Item>
-
-          <div className="text-center">
-            <Typography.Text>
-              Don't have an account?{' '}
-              <Typography.Link href={routeConfig.register.path()}>Register here</Typography.Link>
-            </Typography.Text>
-          </div>
-        </Form>
+      <div className="text-center">
+        <Typography.Title level={3} className="text-gray-900 m-0">
+          Welcome Back
+        </Typography.Title>
+        <Typography.Paragraph>Please enter your credentials to sign in</Typography.Paragraph>
       </div>
+
+      <Form form={form} name="login" onFinish={onFinish} layout="vertical" requiredMark={false}>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[
+            { required: true, message: 'Please input your email!' },
+            { pattern: emailRegex, message: 'Please enter a valid email address' },
+          ]}
+        >
+          <Input type="email" placeholder="Enter your email" />
+        </Form.Item>
+
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[{ required: true, message: 'Please input your password!' }]}
+        >
+          <Input.Password placeholder="Enter your password" />
+        </Form.Item>
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit" className="w-full mt-2">
+            Sign In
+          </Button>
+        </Form.Item>
+
+        <div className="text-center">
+          <Typography.Text>
+            Don't have an account?{' '}
+            <Typography.Link href={routeConfig.register.path()}>Register here</Typography.Link>
+          </Typography.Text>
+        </div>
+      </Form>
     </Page>
   );
 };
