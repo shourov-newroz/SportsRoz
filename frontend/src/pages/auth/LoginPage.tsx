@@ -1,10 +1,10 @@
 import Page from '@/components/HOC/page';
 import { routeConfig } from '@/config/routeConfig';
+import { authService } from '@/utils/authService';
 import { Button, Form, Input, message, Typography } from 'antd';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { authService } from '../../services/auth.service';
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
