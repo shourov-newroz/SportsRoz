@@ -24,7 +24,19 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      validate: {
+        validator: function (v: string) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: 'Please enter a valid email address',
+      },
+    },
     password: { type: String, required: true },
     fullName: { type: String, required: true },
     jerseyName: { type: String },
@@ -44,9 +56,6 @@ const userSchema = new Schema<IUser>(
   },
   { timestamps: true },
 );
-
-// Add index for email for faster lookups
-userSchema.index({ email: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

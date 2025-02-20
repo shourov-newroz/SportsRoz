@@ -64,7 +64,27 @@ const RegistrationForm: React.FC = () => {
           message.error(err.message);
         });
       } else if (axios.isAxiosError(error)) {
-        message.error(error.response?.data?.message || 'Registration failed. Please try again.');
+        // Handle backend validation errors
+        if (error.response?.data?.errors) {
+          // Set form field errors
+          const backendErrors = error.response.data.errors;
+          const formErrors: { [key: string]: { errors: string[] } } = {};
+
+          Object.entries(backendErrors).forEach(([field, message]) => {
+            formErrors[field] = {
+              errors: [message as string],
+            };
+          });
+
+          form.setFields(
+            Object.entries(formErrors).map(([field, error]) => ({
+              name: field,
+              errors: error.errors,
+            }))
+          );
+        } else {
+          message.error('Registration failed. Please try again.');
+        }
       } else {
         message.error('An unexpected error occurred. Please try again.');
       }

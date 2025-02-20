@@ -79,7 +79,7 @@ export class AuthService extends BaseService<IUser> {
       // Validate email is not null or empty
       if (!userData.email?.trim()) {
         throw new AppError('Email address is required', 400, {
-          emailAddress: 'Email address is required',
+          email: 'Email address is required',
         });
       }
 
@@ -95,18 +95,13 @@ export class AuthService extends BaseService<IUser> {
       }
 
       // Check for existing user
-      let user = await this.findOne({ email: userData.email });
+      let user = await User.findOne({ email: userData.email });
 
       if (user) {
         if (user.isEmailVerified) {
-          throw new AppError(
-            'This email is already registered. Please sign in or use a different email address.',
-            409,
-            {
-              email:
-                'This email is already registered. Please sign in or use a different email address.',
-            },
-          );
+          throw new AppError('This email is already registered.', 409, {
+            email: 'This email is already registered.',
+          });
         }
 
         // Check if OTP is still valid
@@ -126,42 +121,24 @@ export class AuthService extends BaseService<IUser> {
         user.fullName = userData.fullName.trim();
         user.officeId = userData.officeId;
       } else {
-        try {
-          // Create new user with all required fields
-          user = await this.create({
-            fullName: userData.fullName.trim(),
-            email: userData.email,
-            officeId: userData.officeId,
-            password: userData.password,
-            isEmailVerified: false,
-          });
-        } catch (error) {
-          console.log(error);
-          // Handle MongoDB duplicate key error
-          if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
-            throw new AppError(
-              'This email is already registered. Please sign in or use a different email address.',
-              409,
-              {
-                email:
-                  'This email is already registered. Please sign in or use a different email address.',
-              },
-            );
-          }
-          throw new AppError('Error creating user', 500);
-        }
+        // Create new user
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(userData.password, salt);
+
+        user = await User.create({
+          email: userData.email,
+          password: hashedPassword,
+          fullName: userData.fullName.trim(),
+          officeId: userData.officeId,
+          isEmailVerified: false,
+        });
       }
 
       const otp = '123456';
-      // const otp = this.generateOTP();
       user.otp = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
 
-      try {
-        await user.save();
-      } catch (error) {
-        throw new AppError('Error saving user', 500);
-      }
+      await user.save();
 
       // Generate temporary token for OTP verification
       const tempToken = jwt.sign({ userId: user._id }, env.JWT_SECRET, {
@@ -178,23 +155,18 @@ export class AuthService extends BaseService<IUser> {
         expiryTime: 600, // 10 minutes in seconds
         intervalTime: 30, // Resend OTP interval in seconds
       };
-    } catch (error) {
-      // Ensure all errors are AppError instances with proper format
-      if (error instanceof AppError) {
-        throw error;
-      }
+    } catch (error: any) {
       // Handle MongoDB duplicate key error
-      if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
-        throw new AppError(
-          'This email is already registered. Please sign in or use a different email address.',
-          409,
-          {
-            email:
-              'This email is already registered. Please sign in or use a different email address.',
-          },
-        );
+      if (error.code === 11000) {
+        throw new AppError('This email is already registered.', 409, {
+          email: 'This email is already registered.',
+        });
       }
-      // Convert any other error to AppError
+      // Handle validation errors
+      if (error.name === 'ValidationError') {
+        throw new AppError('Invalid input data', 400, error.errors);
+      }
+      // Handle other errors
       throw new AppError(error instanceof Error ? error.message : 'Internal server error', 500);
     }
   }
@@ -265,7 +237,7 @@ export class AuthService extends BaseService<IUser> {
   }
 
   async resendOTP(email: string): Promise<string> {
-    const user = await this.findOne({ emailAddress: email });
+    const user = await this.findOne({ email: email });
     if (!user) {
       throw new AppError('User not found', 404, {
         email: 'No account found with this email address',
@@ -285,7 +257,7 @@ export class AuthService extends BaseService<IUser> {
     email: string,
     password: string,
   ): Promise<TokenResponse | { passwordChangeRequired: boolean }> {
-    const user = await this.findOne({ emailAddress: email });
+    const user = await this.findOne({ email: email });
     if (!user) {
       throw new AppError('Invalid credentials', 401, {
         email: 'Invalid email or password',
