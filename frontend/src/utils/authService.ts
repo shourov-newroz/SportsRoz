@@ -39,10 +39,10 @@ class AuthService {
 
       const { data, type, permissions } = response.data.data;
       const user: IUser = {
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_in: data.expires_in,
-        refresh_expires_in: data.refresh_expires_in,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        accessTokenExpiresIn: data.accessTokenExpiresIn,
+        refreshTokenExpiresIn: data.refreshTokenExpiresIn,
         permissions: [...getPermissionsByUserType(type, permissions as IPermissionValue[])],
         name: type,
         type: type,
@@ -60,18 +60,18 @@ class AuthService {
 
   // Token Management
   public saveTokens(tokenData: ITokenData): void {
-    const accessTokenExpirationTime = Date.now() / 1000 + tokenData.expires_in;
-    const refreshTokenExpirationTime = Date.now() / 1000 + tokenData.refresh_expires_in;
+    const accessTokenExpirationTime = Date.now() / 1000 + tokenData.accessTokenExpiresIn;
+    const refreshTokenExpirationTime = Date.now() / 1000 + tokenData.refreshTokenExpiresIn;
 
-    localStorageUtil.setItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN, tokenData.access_token);
-    localStorageUtil.setItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN, tokenData.refresh_token);
+    localStorageUtil.setItem(LOCAL_STORAGE_KEYS.accessToken, tokenData.accessToken);
+    localStorageUtil.setItem(LOCAL_STORAGE_KEYS.refreshToken, tokenData.refreshToken);
     localStorageUtil.setItem(LOCAL_STORAGE_KEYS.TOKEN_EXPIRY, accessTokenExpirationTime);
     localStorageUtil.setItem(LOCAL_STORAGE_KEYS.REFRESH_EXPIRY, refreshTokenExpirationTime);
   }
 
   public clearTokens(): void {
-    localStorageUtil.removeItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
-    localStorageUtil.removeItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
+    localStorageUtil.removeItem(LOCAL_STORAGE_KEYS.accessToken);
+    localStorageUtil.removeItem(LOCAL_STORAGE_KEYS.refreshToken);
     localStorageUtil.removeItem(LOCAL_STORAGE_KEYS.TOKEN_EXPIRY);
     localStorageUtil.removeItem(LOCAL_STORAGE_KEYS.REFRESH_EXPIRY);
   }
@@ -94,8 +94,8 @@ class AuthService {
 
   public getTokenDetails() {
     return {
-      accessToken: localStorageUtil.getItem<string>(LOCAL_STORAGE_KEYS.ACCESS_TOKEN),
-      refreshToken: localStorageUtil.getItem<string>(LOCAL_STORAGE_KEYS.REFRESH_TOKEN),
+      accessToken: localStorageUtil.getItem<string>(LOCAL_STORAGE_KEYS.accessToken),
+      refreshToken: localStorageUtil.getItem<string>(LOCAL_STORAGE_KEYS.refreshToken),
       expiresAt: localStorageUtil.getItem<number>(LOCAL_STORAGE_KEYS.TOKEN_EXPIRY) ?? 0,
       refreshExpiresAt: localStorageUtil.getItem<number>(LOCAL_STORAGE_KEYS.REFRESH_EXPIRY) ?? 0,
     };
@@ -125,10 +125,10 @@ class AuthService {
   public saveUser(user: IUser): void {
     localStorageUtil.setItem(LOCAL_STORAGE_KEYS.USER, user);
     this.saveTokens({
-      access_token: user.access_token,
-      refresh_token: user.refresh_token,
-      expires_in: user.expires_in,
-      refresh_expires_in: user.refresh_expires_in,
+      accessToken: user.accessToken,
+      refreshToken: user.refreshToken,
+      accessTokenExpiresIn: user.accessTokenExpiresIn,
+      refreshTokenExpiresIn: user.refreshTokenExpiresIn,
     });
   }
 
@@ -157,12 +157,12 @@ class AuthService {
 
     try {
       const response = await api.post<IApiResponse<IRefreshTokenResponse>>(
-        BACKEND_ENDPOINTS.AUTH.REFRESH_TOKEN,
+        BACKEND_ENDPOINTS.AUTH.refreshToken,
         {
-          grant_type: 'refresh_token',
+          grant_type: 'refreshToken',
           client_id: CLIENT_ID,
           client_secret: CLIENT_SECRET,
-          refresh_token: refreshToken,
+          refreshToken: refreshToken,
         }
       );
 

@@ -11,19 +11,20 @@ import User, { IUser } from '../models/user.model';
 const env = validateEnv();
 
 interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  refresh_token: string;
-  refresh_expires_in: number;
+  accessToken: string;
+  accessTokenExpiresIn: number;
+  refreshToken: string;
+  refreshTokenExpiresIn: number;
 }
 
 interface SignUpRequest {
   fullName: string;
   email: string;
   officeId: string;
+  password: string;
 }
 interface CreateUserData {
-  full_name: string;
+  fullName: string;
   email: string;
   password: string;
 }
@@ -31,8 +32,8 @@ interface CreateUserData {
 interface RegisterData {
   email: string;
   password: string;
-  full_name: string;
-  office_id: string;
+  fullName: string;
+  officeId: string;
 }
 
 export class AuthService extends BaseService<IUser> {
@@ -54,10 +55,10 @@ export class AuthService extends BaseService<IUser> {
     });
 
     return {
-      access_token: accessToken,
-      expires_in: parseInt(env.JWT_ACCESS_EXPIRATION),
-      refresh_token: refreshToken,
-      refresh_expires_in: parseInt(env.JWT_REFRESH_EXPIRATION),
+      accessToken: accessToken,
+      accessTokenExpiresIn: parseInt(env.JWT_ACCESS_EXPIRATION),
+      refreshToken: refreshToken,
+      refreshTokenExpiresIn: parseInt(env.JWT_REFRESH_EXPIRATION),
     };
   }
 
@@ -126,14 +127,16 @@ export class AuthService extends BaseService<IUser> {
         user.officeId = userData.officeId;
       } else {
         try {
-          // Create new user
+          // Create new user with all required fields
           user = await this.create({
             fullName: userData.fullName.trim(),
             email: userData.email,
             officeId: userData.officeId,
+            password: userData.password,
             isEmailVerified: false,
           });
         } catch (error) {
+          console.log(error);
           // Handle MongoDB duplicate key error
           if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
             throw new AppError(
@@ -323,7 +326,7 @@ export class AuthService extends BaseService<IUser> {
 
     if (!user) {
       throw new AppError('Invalid or expired refresh token', 401, {
-        refresh_token: 'Your session has expired. Please sign in again',
+        refreshToken: 'Your session has expired. Please sign in again',
       });
     }
 
@@ -407,7 +410,7 @@ export class AuthService extends BaseService<IUser> {
   }
 
   async register(data: RegisterData): Promise<Omit<IUser & Document, 'password'>> {
-    const { email, password, full_name, office_id } = data;
+    const { email, password, fullName, officeId } = data;
 
     // Check if user already exists
     const existingUser = await this.model.findOne({ email });
@@ -423,8 +426,8 @@ export class AuthService extends BaseService<IUser> {
     const user = await this.model.create({
       email,
       password: hashedPassword,
-      fullName: full_name,
-      officeId: office_id,
+      fullName,
+      officeId,
       isApproved: false,
       isEmailVerified: false,
     });

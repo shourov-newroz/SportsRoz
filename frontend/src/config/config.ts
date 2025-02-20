@@ -1,4 +1,4 @@
-export const BACKEND_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'h';
+export const BACKEND_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 export const CLIENT_ID = import.meta.env.VITE_API_CLIENT_ID || 'mobile-app';
 export const CLIENT_SECRET =
   import.meta.env.VITE_API_CLIENT_SECRET || '1kfwIxOSyWfcSnrcSpFeRdX0j2kAYasi';
@@ -6,8 +6,8 @@ export const CLIENT_SECRET =
 export const ERROR_CLASS = 'input_error';
 
 export const LOCAL_STORAGE_KEYS = {
-  ACCESS_TOKEN: 'access_token',
-  REFRESH_TOKEN: 'refresh_token',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
   TOKEN_EXPIRY: 'token_expiry',
   REFRESH_EXPIRY: 'refresh_expiry',
   USER: 'user',

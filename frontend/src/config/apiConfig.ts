@@ -1,10 +1,6 @@
 import BACKEND_ENDPOINTS from '@/api/endpoints';
 import { authService } from '@/utils/authService';
-import axios, {
-  AxiosError,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { BACKEND_BASE_URL } from './config';
 
 // Create axios instance
@@ -17,23 +13,18 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  const { accessToken, refreshToken, expiresAt } =
-    authService.getTokenDetails();
+  const { accessToken, refreshToken, expiresAt } = authService.getTokenDetails();
 
   // Skip token logic if tokens are missing (public APIs) or if the request is for refreshing token
-  if (
-    !accessToken ||
-    !refreshToken ||
-    config.url === BACKEND_ENDPOINTS.AUTH.REFRESH_TOKEN
-  ) {
+  if (!accessToken || !refreshToken || config.url === BACKEND_ENDPOINTS.AUTH.refreshToken) {
     return config;
   }
 
   // Check if token needs refreshing
   if (authService.isTokenExpired(expiresAt)) {
     try {
-      const { access_token } = await authService.refreshToken();
-      config.headers.Authorization = `Bearer ${access_token}`;
+      const { accessToken } = await authService.refreshToken();
+      config.headers.Authorization = `Bearer ${accessToken}`;
       return config;
     } catch (error) {
       return Promise.reject(error);
@@ -60,7 +51,7 @@ api.interceptors.response.use(
       !originalRequest ||
       !accessToken ||
       !refreshToken ||
-      originalRequest.url === BACKEND_ENDPOINTS.AUTH.REFRESH_TOKEN
+      originalRequest.url === BACKEND_ENDPOINTS.AUTH.refreshToken
     ) {
       return Promise.reject(error);
     }
@@ -70,20 +61,15 @@ api.interceptors.response.use(
       const errorMessage = error.response?.data || '';
 
       // Handle invalid access/refresh token before expiry
-      if (
-        errorMessage === 'invalid_token' ||
-        errorMessage === 'token_revoked'
-      ) {
+      if (errorMessage === 'invalid_token' || errorMessage === 'token_revoked') {
         authService.logout(); // Clear tokens and redirect to login
-        return Promise.reject(
-          new Error('Session expired. Please log in again.')
-        );
+        return Promise.reject(new Error('Session expired. Please log in again.'));
       }
 
       try {
-        const { access_token } = await authService.refreshToken();
+        const { accessToken } = await authService.refreshToken();
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
         return api(originalRequest);
       } catch (refreshError) {

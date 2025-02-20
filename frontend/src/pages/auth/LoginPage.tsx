@@ -30,8 +30,8 @@ const LoginPage: React.FC = () => {
       const response = await authService.login(values);
 
       // Store tokens
-      localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
 
       message.success('Login successful!');
       navigate(routeConfig.dashboard.path());

@@ -12,57 +12,108 @@ export const privateRouter = Router();
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-// Public routes
 /**
  * @swagger
- * /public/auth/save-business-profile:
+ * components:
+ *   schemas:
+ *     RegisterRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *         - fullName
+ *         - officeId
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: User's password (min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char)
+ *         fullName:
+ *           type: string
+ *           description: User's full name
+ *         officeId:
+ *           type: string
+ *           description: User's office ID
+ *     VerifyOTPRequest:
+ *       type: object
+ *       required:
+ *         - token
+ *         - otp
+ *       properties:
+ *         token:
+ *           type: string
+ *           description: Verification token received during registration
+ *         otp:
+ *           type: string
+ *           description: 6-digit OTP code
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *           format: password
+ *     TokenResponse:
+ *       type: object
+ *       properties:
+ *         accessToken:
+ *           type: string
+ *         accessTokenExpiresIn:
+ *           type: number
+ *         refreshToken:
+ *           type: string
+ *         refreshTokenExpiresIn:
+ *           type: number
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication endpoints
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
  *   post:
- *     summary: Register a new business user
+ *     summary: Register a new user
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - metaInfo
- *               - attributes
- *             properties:
- *               metaInfo:
- *                 type: object
- *                 properties:
- *                   deviceId: string
- *                   deviceType: string
- *                   deviceName: string
- *                   appVersion: string
- *                   osVersion: string
- *                   ipAddress: string
- *                   timestamp: string
- *               attributes:
- *                 type: object
- *                 required:
- *                   - firstName
- *                   - lastName
- *                   - emailAddress
- *                   - mobileNumber
- *                   - countryId
- *                 properties:
- *                   firstName:
- *                     type: string
- *                   lastName:
- *                     type: string
- *                   emailAddress:
- *                     type: string
- *                     format: email
- *                   mobileNumber:
- *                     type: string
- *                   countryId:
- *                     type: string
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: Registration successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Validation error
+ *       409:
+ *         description: Email already exists
  */
 publicRouter.route('/auth/register').post(
   [
-    body('full_name')
+    body('fullName')
       .trim()
       .notEmpty()
       .withMessage('Full name is required')
@@ -70,7 +121,7 @@ publicRouter.route('/auth/register').post(
       .withMessage('Full name must be between 2 and 50 characters')
       .matches(/^[a-zA-Z\s'-]+$/)
       .withMessage('Full name can only contain letters, spaces, hyphens and apostrophes'),
-    body('office_id')
+    body('officeId')
       .trim()
       .notEmpty()
       .withMessage('Office ID is required')
@@ -95,19 +146,30 @@ publicRouter.route('/auth/register').post(
 
 /**
  * @swagger
- * /public/auth/verify-otp:
+ * /api/auth/verify-otp:
  *   post:
- *     summary: Verify OTP
+ *     summary: Verify OTP for email verification
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyOTPRequest'
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ *       401:
+ *         description: Invalid token
  */
 publicRouter
   .route('/auth/verify-otp')
   .post(
     [
-      body('metaInfo').notEmpty().withMessage('Meta info is required'),
-      body('attributes').notEmpty().withMessage('Attributes are required'),
-      body('attributes.token').notEmpty().withMessage('Token is required'),
-      body('attributes.otp')
+      body('token').notEmpty().withMessage('Token is required'),
+      body('otp')
         .notEmpty()
         .withMessage('OTP is required')
         .isNumeric()
@@ -120,13 +182,30 @@ publicRouter
 
 /**
  * @swagger
- * /public/sign-up/send-mobile-otp:
+ * /api/auth/resend-otp:
  *   post:
- *     summary: Resend OTP
+ *     summary: Resend OTP for email verification
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       404:
+ *         description: User not found
  */
 publicRouter
-  .route('/sign-up/send-mobile-otp')
+  .route('/auth/resend-otp')
   .post(
     [body('email').isEmail().withMessage('Please enter a valid email')],
     authController.resendOTP,
@@ -134,66 +213,144 @@ publicRouter
 
 /**
  * @swagger
- * /public/auth/login:
+ * /api/auth/login:
  *   post:
- *     summary: Sign in business user
+ *     summary: Login user
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/TokenResponse'
+ *       401:
+ *         description: Invalid credentials
+ *       403:
+ *         description: Email not verified
  */
 publicRouter
   .route('/auth/login')
   .post(
     [
-      body('attributes.email').isEmail().withMessage('Please enter a valid email'),
-      body('attributes.password').notEmpty().withMessage('Password is required'),
+      body('email').isEmail().withMessage('Please enter a valid email'),
+      body('password').notEmpty().withMessage('Password is required'),
     ],
     authController.login,
   );
 
 /**
  * @swagger
- * /public/auth/refresh-token:
+ * /api/auth/refresh-token:
  *   post:
  *     summary: Refresh access token
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/TokenResponse'
+ *       401:
+ *         description: Invalid or expired refresh token
  */
 publicRouter
   .route('/auth/refresh-token')
   .post(
-    [body('attributes.refresh_token').notEmpty().withMessage('Refresh token is required')],
+    [body('refreshToken').notEmpty().withMessage('Refresh token is required')],
     authController.refreshToken,
   );
 
 /**
  * @swagger
- * /public/auth/first-time/change-password:
+ * /api/auth/reset-password:
  *   post:
- *     summary: Reset password
+ *     summary: Reset password using temporary password
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - temp_password
+ *               - new_password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               temp_password:
+ *                 type: string
+ *               new_password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       401:
+ *         description: Invalid temporary password
+ *       404:
+ *         description: User not found
  */
 publicRouter
-  .route('/auth/first-time/change-password')
+  .route('/auth/reset-password')
   .post(
     [
-      body('attributes.email').isEmail().withMessage('Please enter a valid email'),
-      body('attributes.tempPassword').notEmpty().withMessage('Temporary password is required'),
-      body('attributes.newPassword')
-        .isLength({ min: 6 })
-        .withMessage('New password must be at least 6 characters long'),
+      body('email').isEmail().withMessage('Please enter a valid email'),
+      body('temp_password').notEmpty().withMessage('Temporary password is required'),
+      body('new_password')
+        .isLength({ min: 8 })
+        .withMessage('New password must be at least 8 characters long')
+        .matches(passwordRegex)
+        .withMessage('Please enter a valid password'),
     ],
     authController.resetPassword,
   );
 
 // Private routes (protected)
-privateRouter.use(protect); // Apply authentication middleware to all private routes
+privateRouter.use(protect);
 
 /**
  * @swagger
- * /private/auth/me:
+ * /api/auth/me:
  *   get:
  *     summary: Get current user profile
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 email:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *       401:
+ *         description: Not authenticated
  */
 privateRouter.route('/auth/me').get(authController.getMe);
 

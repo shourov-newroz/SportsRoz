@@ -6,7 +6,7 @@ import logger from './utils/logger';
 
 const env = validateEnv();
 const server = app.listen(env.PORT, () => {
-  logger.info(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
+  logger.info(`Server running in ${env.NODE_ENV} mode on at http://localhost:${env.PORT}`);
   logger.info(`API Documentation available at http://localhost:${env.PORT}/api-docs`);
 });
 

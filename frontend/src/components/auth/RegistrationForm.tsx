@@ -46,11 +46,11 @@ const RegistrationForm: React.FC = () => {
 
       // Transform data to match API expectations
       const registrationData = {
-        full_name: values.fullName,
+        fullName: values.fullName,
         email: values.email,
         password: values.password,
-        password_confirmation: values.passwordConfirmation,
-        office_id: values.officeId,
+        passwordConfirmation: values.passwordConfirmation,
+        officeId: values.officeId,
       };
 
       // Call registration API

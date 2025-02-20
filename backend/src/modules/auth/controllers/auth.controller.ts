@@ -102,10 +102,10 @@ class AuthController extends BaseController {
 
       return {
         body: {
-          access_token: result.access_token,
-          expires_in: result.expires_in,
-          refresh_token: result.refresh_token,
-          refresh_expires_in: result.refresh_expires_in,
+          accessToken: result.accessToken,
+          accessTokenExpiresIn: result.accessTokenExpiresIn,
+          refreshToken: result.refreshToken,
+          refreshTokenExpiresIn: result.refreshTokenExpiresIn,
         },
       };
     });
@@ -119,8 +119,8 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const { refresh_token } = req.body.attributes;
-      const tokens = await this.service.refreshToken(refresh_token);
+      const { refreshToken } = req.body.attributes;
+      const tokens = await this.service.refreshToken(refreshToken);
 
       return { accessTokenResponse: tokens };
     });

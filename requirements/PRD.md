@@ -280,7 +280,7 @@
       {
         "tokens": {
           "accessToken": "JWT_TOKEN_STRING",
-          "expiresIn": "number of seconds",
+          "accessTokenExpiresIn": "number of seconds",
           "refreshToken": "JWT_TOKEN_STRING",
           "refreshTokenExpiresIn": "number of seconds"
         },
@@ -355,7 +355,7 @@
     - `password` (VARCHAR(255) NOT NULL - Hashed)
     - `name` (VARCHAR(255) NOT NULL)
     - `jersey_name` (VARCHAR(255))
-    - `office_id` (VARCHAR(255))
+    - `officeId` (VARCHAR(255))
     - `sport_type` (VARCHAR(255)[] - Array of sports)
     - `date_of_birth` (DATE)
     - `role_id` (FOREIGN KEY)

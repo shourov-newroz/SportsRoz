@@ -1,10 +1,10 @@
 import { IPermissionValue } from '@/config/permission';
 
 export interface ITokenData {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  refresh_expires_in: number;
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresIn: number;
+  refreshTokenExpiresIn: number;
 }
 
 export interface ILoginResponse {
@@ -20,10 +20,10 @@ export interface IUser {
   name: string;
   type: IUserType;
   permissions: IPermissionValue[];
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  refresh_expires_in: number;
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresIn: number;
+  refreshTokenExpiresIn: number;
 }
 
 export const AUTH_STATUS = {
