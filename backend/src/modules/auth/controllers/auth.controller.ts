@@ -37,15 +37,26 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const result = await this.service.signUp(req.body);
+      const { email, password, fullName, officeId } = req.body;
+      const result = await this.service.signUp({
+        email,
+        password,
+        fullName,
+        officeId,
+      });
 
       // In production, send OTP via email/SMS
       logger.info(`OTP for user ${result.user.email}: ${result.otp}`);
 
+      res.status(201);
       return {
-        token: result.token,
-        expiryTime: result.expiryTime,
-        intervalTime: result.intervalTime,
+        message: 'Registration successful. Please check your email for verification code.',
+        data: {
+          userId: result.user._id,
+          token: result.token,
+          expiryTime: result.expiryTime,
+          intervalTime: result.intervalTime,
+        },
       };
     });
   }

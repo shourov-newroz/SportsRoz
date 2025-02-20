@@ -126,7 +126,9 @@ publicRouter.route('/auth/register').post(
       .notEmpty()
       .withMessage('Office ID is required')
       .isLength({ min: 2, max: 50 })
-      .withMessage('Office ID must be between 2 and 50 characters'),
+      .withMessage('Office ID must be between 2 and 50 characters')
+      .matches(/^[a-zA-Z0-9-]+$/)
+      .withMessage('Office ID can only contain letters, numbers and hyphens'),
     body('email')
       .trim()
       .notEmpty()
@@ -138,8 +140,26 @@ publicRouter.route('/auth/register').post(
       .trim()
       .notEmpty()
       .withMessage('Password is required')
-      .matches(passwordRegex)
-      .withMessage('Please enter a valid password'),
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters long')
+      .matches(/[A-Z]/)
+      .withMessage('Password must contain at least one uppercase letter')
+      .matches(/[a-z]/)
+      .withMessage('Password must contain at least one lowercase letter')
+      .matches(/[0-9]/)
+      .withMessage('Password must contain at least one number')
+      .matches(/[!@#$%^&*]/)
+      .withMessage('Password must contain at least one special character (!@#$%^&*)'),
+    body('confirmPassword')
+      .trim()
+      .notEmpty()
+      .withMessage('Password confirmation is required')
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error('Password confirmation does not match password');
+        }
+        return true;
+      }),
   ],
   authController.register,
 );

@@ -120,6 +120,11 @@ export class AuthService extends BaseService<IUser> {
         // Update existing unverified user
         user.fullName = userData.fullName.trim();
         user.officeId = userData.officeId;
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(userData.password, salt);
+        user.password = hashedPassword;
       } else {
         // Create new user
         const salt = await bcrypt.genSalt(10);
@@ -131,6 +136,7 @@ export class AuthService extends BaseService<IUser> {
           fullName: userData.fullName.trim(),
           officeId: userData.officeId,
           isEmailVerified: false,
+          isApproved: false,
         });
       }
 
