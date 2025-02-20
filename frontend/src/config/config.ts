@@ -1,5 +1,4 @@
-export const BACKEND_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://3.253.31.137:8085';
+export const BACKEND_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'h';
 export const CLIENT_ID = import.meta.env.VITE_API_CLIENT_ID || 'mobile-app';
 export const CLIENT_SECRET =
   import.meta.env.VITE_API_CLIENT_SECRET || '1kfwIxOSyWfcSnrcSpFeRdX0j2kAYasi';
@@ -26,4 +25,3 @@ export const OTP_STORAGE_KEYS = {
 } as const;
 
 export type LocalStorageKey = keyof typeof LOCAL_STORAGE_KEYS;
-

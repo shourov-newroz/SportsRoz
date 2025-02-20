@@ -1,45 +1,52 @@
 import bcrypt from 'bcryptjs';
-import { Document, Schema, Types, model } from 'mongoose';
+import { Document, Schema, model } from 'mongoose';
 
 export interface IUser extends Document {
-  _id: Types.ObjectId;
-  full_name: string;
   email: string;
   password: string;
-  isVerified: boolean;
-  comparePassword?(candidatePassword: string): Promise<boolean>;
+  fullName: string;
+  jerseyName?: string;
+  officeId: string;
+  sportType?: string[];
+  dateOfBirth?: Date;
+  role?: Schema.Types.ObjectId;
+  gender?: string;
+  contactNumber?: string;
+  profilePicture?: string;
+  isApproved: boolean;
+  isEmailVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpiry?: Date;
+  otp?: string;
+  otpExpiresAt?: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
   {
-    full_name: {
-      type: String,
-      required: [true, 'Full name is required'],
-      trim: true,
-      minlength: [2, 'Full name must be at least 2 characters long'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      unique: true,
-      trim: true,
-      lowercase: true,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email'],
-    },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters long'],
-    },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    fullName: { type: String, required: true },
+    jerseyName: { type: String },
+    officeId: { type: String, required: true },
+    sportType: [{ type: String }],
+    dateOfBirth: { type: Date },
+    role: { type: Schema.Types.ObjectId, ref: 'Role' },
+    gender: { type: String },
+    contactNumber: { type: String },
+    profilePicture: { type: String },
+    isApproved: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: false },
+    verificationToken: { type: String },
+    verificationTokenExpiry: { type: Date },
+    otp: { type: String },
+    otpExpiresAt: { type: Date },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
+
+// Add index for email for faster lookups
+userSchema.index({ email: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
@@ -54,7 +61,7 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-// Compare password method
+// Add method to compare password
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };

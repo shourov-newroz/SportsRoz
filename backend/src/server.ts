@@ -1,6 +1,7 @@
 import app from './app';
 import validateEnv from './config/env';
 import { disconnectDB } from './database/connection';
+import './register';
 import logger from './utils/logger';
 
 const env = validateEnv();

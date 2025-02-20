@@ -10,6 +10,8 @@ const env = validateEnv();
 export const publicRouter = Router();
 export const privateRouter = Router();
 
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
 // Public routes
 /**
  * @swagger
@@ -60,36 +62,33 @@ export const privateRouter = Router();
  */
 publicRouter.route('/auth/register').post(
   [
-    body('attributes').notEmpty().withMessage('Attributes are required'),
-    body('attributes.firstName')
+    body('full_name')
       .trim()
       .notEmpty()
-      .withMessage('First name is required')
+      .withMessage('Full name is required')
       .isLength({ min: 2, max: 50 })
-      .withMessage('First name must be between 2 and 50 characters')
+      .withMessage('Full name must be between 2 and 50 characters')
       .matches(/^[a-zA-Z\s'-]+$/)
-      .withMessage('First name can only contain letters, spaces, hyphens and apostrophes'),
-    body('attributes.lastName')
+      .withMessage('Full name can only contain letters, spaces, hyphens and apostrophes'),
+    body('office_id')
       .trim()
       .notEmpty()
-      .withMessage('Last name is required')
+      .withMessage('Office ID is required')
       .isLength({ min: 2, max: 50 })
-      .withMessage('Last name must be between 2 and 50 characters')
-      .matches(/^[a-zA-Z\s'-]+$/)
-      .withMessage('Last name can only contain letters, spaces, hyphens and apostrophes'),
-    body('attributes.emailAddress')
+      .withMessage('Office ID must be between 2 and 50 characters'),
+    body('email')
       .trim()
       .notEmpty()
       .withMessage('Email is required')
       .isEmail()
       .withMessage('Please enter a valid email')
       .normalizeEmail(),
-    body('attributes.mobileNumber')
+    body('password')
       .trim()
       .notEmpty()
-      .withMessage('Mobile number is required')
-      .matches(/^\+?[1-9]\d{1,14}$/)
-      .withMessage('Please enter a valid mobile number'),
+      .withMessage('Password is required')
+      .matches(passwordRegex)
+      .withMessage('Please enter a valid password'),
   ],
   authController.register,
 );

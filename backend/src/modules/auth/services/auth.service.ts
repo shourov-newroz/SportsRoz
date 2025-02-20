@@ -1,4 +1,6 @@
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Document } from 'mongoose';
 import validateEnv from '../../../config/env';
 import { AppError } from '../../../middleware/errorHandler';
 import { BaseService } from '../../../utils/baseService';
@@ -15,43 +17,32 @@ interface TokenResponse {
   refresh_expires_in: number;
 }
 
-interface SignUpData {
-  firstName: string;
-  lastName: string;
-  emailAddress: string;
-  mobileNumber: string;
-  countryId: string;
-}
-
-interface MetaInfo {
-  deviceId: string;
-  deviceType: string;
-  deviceName: string;
-  appVersion: string;
-  osVersion: string;
-  ipAddress: string;
-  timestamp: string;
-}
-
 interface SignUpRequest {
-  metaInfo: MetaInfo;
-  attributes: SignUpData;
+  fullName: string;
+  email: string;
+  officeId: string;
 }
-
 interface CreateUserData {
   full_name: string;
   email: string;
   password: string;
 }
 
-class AuthService extends BaseService<IUser> {
+interface RegisterData {
+  email: string;
+  password: string;
+  full_name: string;
+  office_id: string;
+}
+
+export class AuthService extends BaseService<IUser> {
   constructor() {
     super(User);
   }
 
   private generateTokens(user: IUser): TokenResponse {
     const accessToken = jwt.sign(
-      { userId: user._id, email: user.email, name: user.full_name },
+      { userId: user._id, email: user.email, name: user.fullName },
       env.JWT_SECRET,
       {
         expiresIn: parseInt(env.JWT_ACCESS_EXPIRATION),
@@ -82,36 +73,36 @@ class AuthService extends BaseService<IUser> {
     intervalTime: number;
   }> {
     try {
-      const userData = request.attributes;
+      const userData = request;
 
       // Validate email is not null or empty
-      if (!userData.emailAddress?.trim()) {
+      if (!userData.email?.trim()) {
         throw new AppError('Email address is required', 400, {
           emailAddress: 'Email address is required',
         });
       }
 
       // Normalize email
-      userData.emailAddress = userData.emailAddress.trim().toLowerCase();
+      userData.email = userData.email.trim().toLowerCase();
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(userData.emailAddress)) {
+      if (!emailRegex.test(userData.email)) {
         throw new AppError('Invalid email format', 400, {
-          emailAddress: 'Please enter a valid email address',
+          email: 'Please enter a valid email address',
         });
       }
 
       // Check for existing user
-      let user = await this.findOne({ emailAddress: userData.emailAddress });
+      let user = await this.findOne({ email: userData.email });
 
       if (user) {
-        if (user.isVerified) {
+        if (user.isEmailVerified) {
           throw new AppError(
             'This email is already registered. Please sign in or use a different email address.',
             409,
             {
-              emailAddress:
+              email:
                 'This email is already registered. Please sign in or use a different email address.',
             },
           );
@@ -131,17 +122,16 @@ class AuthService extends BaseService<IUser> {
         }
 
         // Update existing unverified user
-        user.firstName = userData.firstName.trim();
-        user.lastName = userData.lastName.trim();
-        user.mobileNumber = userData.mobileNumber.trim();
+        user.fullName = userData.fullName.trim();
+        user.officeId = userData.officeId;
       } else {
         try {
           // Create new user
           user = await this.create({
-            firstName: userData.firstName.trim(),
-            lastName: userData.lastName.trim(),
-            emailAddress: userData.emailAddress,
-            mobileNumber: userData.mobileNumber.trim(),
+            fullName: userData.fullName.trim(),
+            email: userData.email,
+            officeId: userData.officeId,
+            isEmailVerified: false,
           });
         } catch (error) {
           // Handle MongoDB duplicate key error
@@ -150,7 +140,7 @@ class AuthService extends BaseService<IUser> {
               'This email is already registered. Please sign in or use a different email address.',
               409,
               {
-                emailAddress:
+                email:
                   'This email is already registered. Please sign in or use a different email address.',
               },
             );
@@ -176,7 +166,7 @@ class AuthService extends BaseService<IUser> {
       });
 
       logger.info(
-        `User ${user.isVerified ? 'updated' : 'created'} successfully with ID: ${user._id}`,
+        `User ${user.isEmailVerified ? 'updated' : 'created'} successfully with ID: ${user._id}`,
       );
       return {
         user,
@@ -196,7 +186,7 @@ class AuthService extends BaseService<IUser> {
           'This email is already registered. Please sign in or use a different email address.',
           409,
           {
-            emailAddress:
+            email:
               'This email is already registered. Please sign in or use a different email address.',
           },
         );
@@ -242,15 +232,15 @@ class AuthService extends BaseService<IUser> {
       // const tempPassword = this.generateTempPassword();
       const tempPassword = '123456';
       user.password = tempPassword;
-      user.isVerified = true;
+      user.isEmailVerified = true;
       user.otp = undefined;
       user.otpExpiresAt = undefined;
       await user.save();
 
       // Send email with temporary password
       try {
-        logger.info(`Temporary password sent to ${user.emailAddress} password is ${tempPassword}`);
-        await emailService.sendTempPassword(user.emailAddress, user.firstName, tempPassword);
+        logger.info(`Temporary password sent to ${user.email} password is ${tempPassword}`);
+        await emailService.sendTempPassword(user.email, user.fullName, tempPassword);
       } catch (error) {
         logger.error('Failed to send temporary password email:', error);
         // Don't throw error here, just log it. The user is still verified.
@@ -312,15 +302,13 @@ class AuthService extends BaseService<IUser> {
       });
     }
 
-    if (!user.isVerified) {
+    if (!user.isEmailVerified) {
       throw new AppError('Please verify your email first', 403, {
         email: 'Please verify your email address to continue',
       });
     }
 
     const tokens = this.generateTokens(user);
-    user.refreshToken = tokens.refresh_token;
-    user.refreshTokenExpiresAt = new Date(Date.now() + tokens.refresh_expires_in * 1000);
 
     await user.save();
 
@@ -340,15 +328,13 @@ class AuthService extends BaseService<IUser> {
     }
 
     const tokens = this.generateTokens(user);
-    user.refreshToken = tokens.refresh_token;
-    user.refreshTokenExpiresAt = new Date(Date.now() + tokens.refresh_expires_in * 1000);
     await user.save();
 
     return tokens;
   }
 
   async resetPassword(email: string, tempPassword: string, newPassword: string): Promise<void> {
-    const user = await this.findOne({ emailAddress: email });
+    const user = await this.findOne({ email });
     if (!user) {
       throw new AppError('User not found', 404, {
         email: 'No account found with this email address',
@@ -403,6 +389,13 @@ class AuthService extends BaseService<IUser> {
         throw new AppError('Invalid credentials', 401);
       }
 
+      if (!user.isEmailVerified) {
+        throw new AppError('Please verify your email to access this resource.', 403, {
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Email verification required',
+        });
+      }
+
       // Generate tokens
       return this.generateTokens(user);
     } catch (error) {
@@ -411,6 +404,36 @@ class AuthService extends BaseService<IUser> {
       }
       throw new AppError('Error during login', 500);
     }
+  }
+
+  async register(data: RegisterData): Promise<Omit<IUser & Document, 'password'>> {
+    const { email, password, full_name, office_id } = data;
+
+    // Check if user already exists
+    const existingUser = await this.model.findOne({ email });
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const user = await this.model.create({
+      email,
+      password: hashedPassword,
+      fullName: full_name,
+      officeId: office_id,
+      isApproved: false,
+      isEmailVerified: false,
+    });
+
+    // Return user data (excluding password)
+    const userObject = user.toObject();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userData } = userObject;
+    return userData as Omit<IUser & Document, 'password'>;
   }
 }
 

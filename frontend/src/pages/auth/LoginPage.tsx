@@ -88,7 +88,7 @@ const LoginPage: React.FC = () => {
         <div className="text-center">
           <Typography.Text>
             Don't have an account?{' '}
-            <Typography.Link href={routeConfig.register.path()}>Register here</Typography.Link>
+            <Typography.Link href={routeConfig.register.path()}>Register</Typography.Link>
           </Typography.Text>
         </div>
       </Form>

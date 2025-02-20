@@ -151,7 +151,7 @@ class AuthController extends BaseController {
       return {
         user: {
           email: user.email,
-          name: user.full_name,
+          name: user.fullName,
         },
       };
     });
