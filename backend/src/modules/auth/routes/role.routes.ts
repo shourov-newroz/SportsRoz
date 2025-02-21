@@ -29,6 +29,11 @@ router.use(protect);
  *               name:
  *                 type: string
  *                 description: The name of the role
+ *               permissions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of permission IDs
  *     responses:
  *       201:
  *         description: Role created successfully
@@ -44,6 +49,17 @@ router.use(protect);
  *                       type: string
  *                     name:
  *                       type: string
+ *                     permissions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           description:
+ *                             type: string
  *                     createdAt:
  *                       type: string
  *                       format: date-time
@@ -68,6 +84,15 @@ router.post(
       .withMessage('Role name must be at least 2 characters long')
       .matches(/^[a-zA-Z0-9_-]+$/)
       .withMessage('Role name can only contain letters, numbers, hyphens and underscores'),
+    body('permissions')
+      .optional()
+      .isArray()
+      .withMessage('Permissions must be an array')
+      .custom((value) => {
+        if (!Array.isArray(value)) return false;
+        return value.every((id) => typeof id === 'string' && id.length > 0);
+      })
+      .withMessage('Each permission must be a valid ID'),
   ],
   validate,
   roleController.createRole,
@@ -98,6 +123,17 @@ router.post(
  *                         type: string
  *                       name:
  *                         type: string
+ *                       permissions:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             description:
+ *                               type: string
  *                       createdAt:
  *                         type: string
  *                         format: date-time
