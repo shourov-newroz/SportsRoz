@@ -17,6 +17,10 @@ const BACKEND_ENDPOINTS = {
     VERIFY_OTP: '/public/auth/verify-otp',
     refreshToken: '/public/auth/refresh-token',
   },
+  ROLES: {
+    CREATE: '/roles',
+    GET_ALL: '/roles',
+  },
 };
 
 export default BACKEND_ENDPOINTS;

@@ -74,6 +74,13 @@ export const routeConfig = {
     requiredPermissions: [],
   },
 
+  roles: {
+    routePath: '/admin/roles',
+    path: () => '/admin/roles',
+    title: 'Roles',
+    requiredPermissions: [],
+  },
+
   // Not Found Route
   notFound: {
     routePath: '*',

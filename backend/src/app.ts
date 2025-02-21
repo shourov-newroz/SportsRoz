@@ -18,6 +18,7 @@ import logger, { stream } from './utils/logger';
 
 // Import routes
 import authRouter from './modules/auth/routes/auth.routes';
+import roleRouter from './modules/auth/routes/role.routes';
 import userRouter from './modules/users/routes/user.routes';
 
 // Initialize environment variables
@@ -144,10 +145,12 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // Load routes
+app.use(`${apiVersion}/admin/roles`, roleRouter);
 
 // Mount auth routes
 app.use(`${apiVersion}/`, authRouter);
 app.use(`${apiVersion}/users`, userRouter);
+
 // Handle 404
 app.use((_req: Request, res: Response) => {
   ApiResponseBuilder.fail(res, 'Route not found', 404);

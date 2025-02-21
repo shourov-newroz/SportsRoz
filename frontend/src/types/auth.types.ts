@@ -1,4 +1,3 @@
-import { IPermissionValue } from '@/config/permission';
 
 export interface ITokenData {
   accessToken: string;
@@ -7,26 +6,21 @@ export interface ITokenData {
   refreshTokenExpiresIn: number;
 }
 
-export interface ILoginResponse extends ITokenData {
-  id: string;
-  type: IUserType;
-  name: string;
-  email: string;
-  officeId: string;
-  permissions: string[];
+export interface ILoginResponse {
+  tokens: {
+    accessToken: string;
+    accessTokenExpiresIn: number;
+    refreshToken: string;
+    refreshTokenExpiresIn: number;
+  };
+  user: IAuthUser;
 }
 
 export interface IAuthUser {
   id: string;
-  email: string;
   name: string;
-  officeId: string;
-  type: IUserType;
-  permissions: IPermissionValue[];
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresIn: number;
-  refreshTokenExpiresIn: number;
+  role: string;
+  email: string;
 }
 
 export const AUTH_STATUS = {
@@ -70,4 +64,36 @@ export interface IAuthError {
   message: string;
   code?: string;
   status?: number;
+}
+
+export interface ILoginData {
+  email: string;
+  password: string;
+}
+
+export interface IRegisterData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  name: string;
+  officeId: string;
+}
+
+export interface IVerifyOTPData {
+  email: string;
+  otp: string;
+}
+
+export interface IForgotPasswordData {
+  email: string;
+}
+
+export interface IResetPasswordData {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface IVerifyResetPasswordTokenData {
+  token: string;
 }
