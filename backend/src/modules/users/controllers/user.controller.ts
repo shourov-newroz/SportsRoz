@@ -11,6 +11,7 @@ class UserController extends BaseController {
     super();
     // Bind methods to preserve 'this' context
     this.getProfile = this.getProfile.bind(this);
+    this.updateProfile = this.updateProfile.bind(this);
   }
 
   private formatValidationErrors(errors: ValidationError[]): Record<string, string> {
@@ -48,6 +49,44 @@ class UserController extends BaseController {
         gender: user.gender,
         contactNumber: user.contactNumber,
         profilePicture: user.profilePicture,
+      };
+    });
+  }
+
+  async updateProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const userId = req.params.id;
+      const updateData = req.body;
+
+      // Check if user is updating their own profile
+      if (req.user?._id.toString() !== userId) {
+        throw new AppError('Unauthorized', 403);
+      }
+
+      // Remove fields that shouldn't be updated
+      delete updateData.email;
+      delete updateData.officeId;
+      delete updateData.role;
+      delete updateData.password;
+
+      const updatedUser = await this.service.updateProfile(userId, updateData);
+
+      if (!updatedUser) {
+        throw new AppError('User not found', 404);
+      }
+
+      return {
+        userId: updatedUser._id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        jerseyName: updatedUser.jerseyName,
+        officeId: updatedUser.officeId,
+        sportType: updatedUser.sportType,
+        dateOfBirth: updatedUser.dateOfBirth,
+        role: updatedUser.role,
+        gender: updatedUser.gender,
+        contactNumber: updatedUser.contactNumber,
+        profilePicture: updatedUser.profilePicture,
       };
     });
   }

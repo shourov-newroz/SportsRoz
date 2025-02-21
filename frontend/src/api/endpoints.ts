@@ -3,6 +3,7 @@
 const BACKEND_ENDPOINTS = {
   USERS: {
     GET_PROFILE: (id: string) => `/users/${id}`,
+    UPDATE_PROFILE: (id: string) => `/users/${id}`,
   },
   AUTH: {
     LOGIN: '/public/auth/login',
