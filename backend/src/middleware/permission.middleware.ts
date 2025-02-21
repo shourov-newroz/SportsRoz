@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { IPermission } from '../modules/auth/models/permission.model';
 import Role from '../modules/auth/models/role.model';
 import { AppError } from './errorHandler';
 
@@ -12,14 +13,16 @@ export const checkPermission = (requiredPermission: string) => {
       }
 
       // Get role with populated permissions
-      const role = await Role.findById(userRole).populate('permissions');
+      const role = await Role.findById(userRole).populate<{ permissions: IPermission[] }>(
+        'permissions',
+      );
       if (!role) {
         throw new AppError('Role not found', 404);
       }
 
       // Check if role has required permission
       const hasPermission = role.permissions.some(
-        (permission: any) => permission.name === requiredPermission,
+        (permission) => permission.name === requiredPermission,
       );
 
       if (!hasPermission) {
