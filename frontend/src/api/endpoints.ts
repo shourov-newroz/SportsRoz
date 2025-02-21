@@ -21,6 +21,9 @@ const BACKEND_ENDPOINTS = {
     CREATE: '/roles',
     GET_ALL: '/roles',
   },
+  PERMISSIONS: {
+    GET_ALL: '/permissions',
+  },
 };
 
 export default BACKEND_ENDPOINTS;
