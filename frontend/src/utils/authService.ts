@@ -4,11 +4,11 @@ import { CLIENT_ID, CLIENT_SECRET, LOCAL_STORAGE_KEYS } from '@/config/config';
 import { getPermissionsByUserType } from '@/config/permission';
 import { routeConfig } from '@/config/routeConfig';
 import {
+  IAuthUser,
   ILoginCredentials,
   ILoginResponse,
   IRefreshTokenResponse,
   ITokenData,
-  IUser,
 } from '@/types/auth.types';
 import { IApiResponse } from '@/types/common';
 import { localStorageUtil } from '@/utils/localStorageUtil';
@@ -29,7 +29,7 @@ class AuthService {
   }
 
   // Auth Methods
-  public async login(credentials: ILoginCredentials): Promise<IUser> {
+  public async login(credentials: ILoginCredentials): Promise<IAuthUser> {
     const response = await api.post<IApiResponse<ILoginResponse>>(
       BACKEND_ENDPOINTS.AUTH.LOGIN,
       credentials
@@ -40,20 +40,22 @@ class AuthService {
       refreshToken,
       accessTokenExpiresIn,
       refreshTokenExpiresIn,
-      fullName,
+      id,
+      name,
       officeId,
       email,
     } = response.data.data;
-    const user: IUser = {
+    const user: IAuthUser = {
       accessToken,
       refreshToken,
       accessTokenExpiresIn,
       refreshTokenExpiresIn,
       permissions: [...getPermissionsByUserType('System Admin', [])],
-      fullName,
+      name,
       officeId,
       type: 'System Admin',
       email,
+      id,
     };
     this.saveUser(user);
     return user;
@@ -123,7 +125,7 @@ class AuthService {
   }
 
   // Auth State Management
-  public saveUser(user: IUser): void {
+  public saveUser(user: IAuthUser): void {
     localStorageUtil.setItem(LOCAL_STORAGE_KEYS.USER, user);
     this.saveTokens({
       accessToken: user.accessToken,
@@ -133,8 +135,8 @@ class AuthService {
     });
   }
 
-  public getUser(): IUser | null {
-    return localStorageUtil.getItem<IUser>(LOCAL_STORAGE_KEYS.USER);
+  public getUser(): IAuthUser | null {
+    return localStorageUtil.getItem<IAuthUser>(LOCAL_STORAGE_KEYS.USER);
   }
 
   // Token Refresh Logic

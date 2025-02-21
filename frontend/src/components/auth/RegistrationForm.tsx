@@ -26,7 +26,7 @@ const registrationSchema = z
         'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character'
       ),
     confirmPassword: z.string(),
-    fullName: z.string().min(1, 'Full name is required'),
+    name: z.string().min(1, 'Full name is required'),
     officeId: z.string().min(1, 'Office ID is required'),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -75,7 +75,7 @@ const RegistrationForm: React.FC = () => {
 
       // Transform data to match API expectations
       const registrationData = {
-        fullName: values.fullName,
+        name: values.name,
         email: values.email,
         password: values.password,
         confirmPassword: values.confirmPassword,
@@ -164,7 +164,7 @@ const RegistrationForm: React.FC = () => {
       </Form.Item>
 
       <Form.Item
-        name="fullName"
+        name="name"
         label="Full Name"
         rules={[{ required: true, message: 'Please input your full name!' }]}
       >

@@ -1,6 +1,5 @@
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import validateEnv from '../../../config/env';
 import { AppError } from '../../../middleware/errorHandler';
 import { BaseService } from '../../../utils/baseService';
@@ -17,19 +16,20 @@ interface TokenResponse {
 }
 
 interface LoginResponse extends TokenResponse {
+  id: string;
   email: string;
-  fullName: string;
+  name: string;
   officeId: string;
 }
 
 interface SignUpRequest {
-  fullName: string;
+  name: string;
   email: string;
   officeId: string;
   password: string;
 }
 interface CreateUserData {
-  fullName: string;
+  name: string;
   email: string;
   password: string;
 }
@@ -37,7 +37,7 @@ interface CreateUserData {
 interface RegisterData {
   email: string;
   password: string;
-  fullName: string;
+  name: string;
   officeId: string;
 }
 
@@ -48,7 +48,7 @@ export class AuthService extends BaseService<IUser> {
 
   private generateTokens(user: IUser): TokenResponse {
     const accessToken = jwt.sign(
-      { userId: user._id, email: user.email, name: user.fullName },
+      { userId: user._id, email: user.email, name: user.name },
       env.JWT_SECRET,
       {
         expiresIn: parseInt(env.JWT_ACCESS_EXPIRATION),
@@ -123,14 +123,14 @@ export class AuthService extends BaseService<IUser> {
         }
 
         // Update existing unverified user
-        user.fullName = userData.fullName.trim();
+        user.name = userData.name.trim();
         user.officeId = userData.officeId;
       } else {
         // Create new user
         user = await User.create({
           email: userData.email,
           password: userData.password,
-          fullName: userData.fullName.trim(),
+          name: userData.name.trim(),
           officeId: userData.officeId,
           isEmailVerified: false,
           isApproved: false,
@@ -317,7 +317,7 @@ export class AuthService extends BaseService<IUser> {
     // }
 
     // Compare password using bcrypt directly
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       throw new AppError('Invalid credentials', 401, {
         password: 'Invalid email or password',
@@ -328,14 +328,15 @@ export class AuthService extends BaseService<IUser> {
     // Generate tokens
     return {
       ...this.generateTokens(user),
+      id: (user._id as unknown as Types.ObjectId).toString(),
       email: user.email,
-      fullName: user.fullName,
+      name: user.name,
       officeId: user.officeId,
     };
   }
 
   async register(data: RegisterData): Promise<Omit<IUser & Document, 'password'>> {
-    const { email, password, fullName, officeId } = data;
+    const { email, password, name, officeId } = data;
 
     // Check if user already exists
     const existingUser = await this.model.findOne({ email });
@@ -347,7 +348,7 @@ export class AuthService extends BaseService<IUser> {
     const user = await this.model.create({
       email,
       password,
-      fullName,
+      name,
       officeId,
       isApproved: false,
       isEmailVerified: false,

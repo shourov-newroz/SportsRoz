@@ -1,4 +1,4 @@
-import { AUTH_STATUS, IAuthState, IAuthStatus, IUser } from '@/types/auth.types';
+import { AUTH_STATUS, IAuthState, IAuthStatus, IAuthUser } from '@/types/auth.types';
 
 export const initialState: IAuthState = {
   user: null,
@@ -12,12 +12,12 @@ export const initialState: IAuthState = {
 type AuthAction =
   | { type: 'INITIALIZE' }
   | { type: 'LOGIN_REQUEST' }
-  | { type: 'LOGIN_SUCCESS'; payload: { user: IUser } }
+  | { type: 'LOGIN_SUCCESS'; payload: { user: IAuthUser } }
   | { type: 'LOGIN_FAILURE'; payload: { error: string } }
   | { type: 'LOGOUT_REQUEST' }
   | { type: 'LOGOUT_SUCCESS' }
   | { type: 'LOGOUT_FAILURE'; payload: { error: string } }
-  | { type: 'UPDATE_USER'; payload: { user: IUser } }
+  | { type: 'UPDATE_USER'; payload: { user: IAuthUser } }
   | { type: 'SET_STATUS'; payload: { status: IAuthStatus } }
   | { type: 'CLEAR_ERROR' };
 

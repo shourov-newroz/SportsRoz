@@ -1,6 +1,6 @@
-import { AppError } from '@/middleware/errorHandler';
-import User, { IUser } from '@/modules/auth/models/user.model';
-import { BaseService } from '@/utils/baseService';
+import { AppError } from '../../../middleware/errorHandler';
+import { BaseService } from '../../../utils/baseService';
+import User, { IUser } from '../../auth/models/user.model';
 
 class UserService extends BaseService<IUser> {
   constructor() {
@@ -21,6 +21,14 @@ class UserService extends BaseService<IUser> {
       throw new AppError('Error during get user', 500);
     }
   }
+
+  async getProfile(userId: string): Promise<IUser> {
+    const user = await this.model.findById(userId).select('-password');
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+    return user;
+  }
 }
 
-export const userService = new UserService();
+export default new UserService();

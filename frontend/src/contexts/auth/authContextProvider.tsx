@@ -1,6 +1,6 @@
 import { routeConfig } from '@/config/routeConfig';
 import authReducer, { initialState } from '@/reducers/authReducer';
-import { IAuthState, IAuthStatus, ILoginCredentials, IUser } from '@/types/auth.types';
+import { IAuthState, IAuthStatus, IAuthUser, ILoginCredentials } from '@/types/auth.types';
 import { authService } from '@/utils/authService';
 import { message } from 'antd';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
@@ -10,7 +10,7 @@ import AuthContext from './authContext';
 export interface IAuthContextType extends IAuthState {
   login: (credentials: ILoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (user: IUser) => void;
+  updateUser: (user: IAuthUser) => void;
   setAuthenticationStatus: (status: IAuthStatus) => void;
   clearError: () => void;
   initialize: () => Promise<void>;
@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [navigate]);
 
-  const updateUser = useCallback((user: IUser) => {
+  const updateUser = useCallback((user: IAuthUser) => {
     try {
       dispatch({ type: 'UPDATE_USER', payload: { user } });
     } catch (error) {

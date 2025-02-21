@@ -65,12 +65,12 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
     }
 
     // 4) Check if user is verified
-    if (!user.isEmailVerified) {
-      throw new AppError('Please verify your email to access this resource.', 403, {
-        code: 'EMAIL_NOT_VERIFIED',
-        message: 'Email verification required',
-      });
-    }
+    // if (!user.isEmailVerified) {
+    //   throw new AppError('Please verify your email to access this resource.', 403, {
+    //     code: 'EMAIL_NOT_VERIFIED',
+    //     message: 'Email verification required',
+    //   });
+    // }
 
     // Grant access to protected route
     req.user = user as IUser & { _id: Types.ObjectId };

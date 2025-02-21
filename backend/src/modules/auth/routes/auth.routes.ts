@@ -21,7 +21,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
  *       required:
  *         - email
  *         - password
- *         - fullName
+ *         - name
  *         - officeId
  *       properties:
  *         email:
@@ -32,7 +32,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
  *           type: string
  *           format: password
  *           description: User's password (min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char)
- *         fullName:
+ *         name:
  *           type: string
  *           description: User's full name
  *         officeId:
@@ -113,7 +113,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
  */
 publicRouter.route('/auth/register').post(
   [
-    body('fullName')
+    body('name')
       .trim()
       .notEmpty()
       .withMessage('Full name is required')

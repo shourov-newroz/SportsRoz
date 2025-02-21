@@ -4,7 +4,7 @@ import { Document, Schema, model } from 'mongoose';
 export interface IUser extends Document {
   email: string;
   password: string;
-  fullName: string;
+  name: string;
   jerseyName?: string;
   officeId: string;
   sportType?: string[];
@@ -38,7 +38,7 @@ const userSchema = new Schema<IUser>(
       },
     },
     password: { type: String, required: true },
-    fullName: { type: String, required: true },
+    name: { type: String, required: true },
     jerseyName: { type: String },
     officeId: { type: String, required: true },
     sportType: [{ type: String }],

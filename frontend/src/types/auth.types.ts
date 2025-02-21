@@ -8,17 +8,18 @@ export interface ITokenData {
 }
 
 export interface ILoginResponse extends ITokenData {
+  id: string;
   type: IUserType;
-  fullName: string;
+  name: string;
   email: string;
   officeId: string;
   permissions: string[];
 }
 
-export interface IUser {
-  // id: string;
+export interface IAuthUser {
+  id: string;
   email: string;
-  fullName: string;
+  name: string;
   officeId: string;
   type: IUserType;
   permissions: IPermissionValue[];
@@ -43,7 +44,7 @@ export const USER_TYPES = {
 export type IUserType = (typeof USER_TYPES)[keyof typeof USER_TYPES];
 
 export interface IAuthState {
-  user: IUser | null;
+  user: IAuthUser | null;
   status: IAuthStatus;
   userPermissions: string[];
   isInitialized: boolean;

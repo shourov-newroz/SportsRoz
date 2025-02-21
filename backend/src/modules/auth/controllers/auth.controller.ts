@@ -38,11 +38,11 @@ class AuthController extends BaseController {
         throw new AppError('Validation failed', 400, validationErrors);
       }
 
-      const { email, password, fullName, officeId } = req.body;
+      const { email, password, name, officeId } = req.body;
       const result = await this.service.signUp({
         email,
         password,
-        fullName,
+        name,
         officeId,
       });
 
@@ -110,8 +110,9 @@ class AuthController extends BaseController {
       }
 
       return {
+        id: result.id,
         email: result.email,
-        fullName: result.fullName,
+        name: result.name,
         officeId: result.officeId,
         accessToken: result.accessToken,
         accessTokenExpiresIn: result.accessTokenExpiresIn,
@@ -161,7 +162,7 @@ class AuthController extends BaseController {
       return {
         user: {
           email: user.email,
-          name: user.fullName,
+          name: user.name,
         },
       };
     });

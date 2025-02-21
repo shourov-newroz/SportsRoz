@@ -1,9 +1,8 @@
-import { IUser } from '@/modules/auth/models/user.model';
-import { BaseController } from '@/utils/baseController';
 import { NextFunction, Request, Response } from 'express';
 import { ValidationError } from 'express-validator';
 import { AppError } from '../../../middleware/errorHandler';
-import { userService } from '../services/user.service';
+import { BaseController } from '../../../utils/baseController';
+import userService from '../services/user.service';
 
 class UserController extends BaseController {
   protected service = userService;
@@ -23,25 +22,32 @@ class UserController extends BaseController {
     return validationErrors;
   }
 
-  async getProfile(req: Request, res: Response, next: NextFunction): Promise<IUser> {
+  async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     await this.handleRequest(req, res, next, async () => {
       const userId = req.params.id;
+      const user = await this.service.getProfile(userId);
 
-      // Ensure user can only access their own profile
-      if (userId !== req.user?._id) {
-        throw new AppError('Unauthorized', 403);
-      }
-
-      const user = await userService.getUserById(userId);
       if (!user) {
         throw new AppError('User not found', 404);
       }
 
-      // Remove sensitive data
-      const { ...userProfile } = user;
+      // Check if user is requesting their own profile
+      if (req.user?._id.toString() !== userId) {
+        throw new AppError('Unauthorized', 403);
+      }
 
       return {
-        userProfile,
+        userId: user._id,
+        email: user.email,
+        name: user.name,
+        jerseyName: user.jerseyName,
+        officeId: user.officeId,
+        sportType: user.sportType,
+        dateOfBirth: user.dateOfBirth,
+        role: user.role,
+        gender: user.gender,
+        contactNumber: user.contactNumber,
+        profilePicture: user.profilePicture,
       };
     });
   }

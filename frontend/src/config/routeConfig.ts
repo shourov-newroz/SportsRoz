@@ -71,6 +71,7 @@ export const routeConfig = {
     path: () => '/profile',
     title: 'Profile',
     icon: UserOutlined,
+    requiredPermissions: [],
   },
 
   // Not Found Route

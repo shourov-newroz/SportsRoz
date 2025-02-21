@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend for eKYB application",
   "main": "dist/server.js",
+  "_moduleAliases": {
+    "@": "dist/src"
+  },
   "scripts": {
     "start": "ts-node -r ./src/register.ts src/server.ts",
     "dev": "nodemon -r ./src/register.ts src/server.ts",
