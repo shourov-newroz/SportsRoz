@@ -7,9 +7,10 @@
     "@": "dist/src"
   },
   "scripts": {
-    "start": "ts-node -r ./src/register.ts src/server.ts",
-    "dev": "nodemon -r ./src/register.ts src/server.ts",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "seed:permissions": "ts-node src/scripts/seedPermissions.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest",

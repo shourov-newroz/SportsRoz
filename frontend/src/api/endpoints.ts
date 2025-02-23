@@ -20,6 +20,7 @@ const BACKEND_ENDPOINTS = {
   ROLES: {
     CREATE: '/roles',
     GET_ALL: '/roles',
+    UPDATE: (id: string) => `/roles/${id}`,
   },
   PERMISSIONS: {
     GET_ALL: '/permissions',

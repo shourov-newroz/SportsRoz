@@ -147,4 +147,102 @@ router.post(
  */
 router.get('/', roleController.getAllRoles);
 
+/**
+ * @swagger
+ * /roles/{id}:
+ *   put:
+ *     summary: Update an existing role (Admin only)
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the role to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the role
+ *               permissions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of permission IDs
+ *     responses:
+ *       200:
+ *         description: Role updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     permissions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to update roles
+ *       404:
+ *         description: Role not found
+ */
+router.put(
+  '/:id',
+  [
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Role name is required')
+      .isLength({ min: 2 })
+      .withMessage('Role name must be at least 2 characters long')
+      .matches(/^[a-zA-Z0-9_-]+$/)
+      .withMessage('Role name can only contain letters, numbers, hyphens and underscores'),
+    body('permissions')
+      .optional()
+      .isArray()
+      .withMessage('Permissions must be an array')
+      .custom((value) => {
+        if (!Array.isArray(value)) return false;
+        return value.every((id) => typeof id === 'string' && id.length > 0);
+      })
+      .withMessage('Each permission must be a valid ID'),
+  ],
+  validate,
+  roleController.updateRole,
+);
+
 export default router;

@@ -12,6 +12,16 @@ class RoleService extends BaseService<IRole> {
     super(Role);
   }
 
+  async getRoleById(id: string | undefined): Promise<IRole | null> {
+    if (!id) return null;
+    try {
+      const role = await this.model.findById(id).populate('permissions');
+      return role;
+    } catch (error) {
+      throw new AppError('Error fetching role', 500);
+    }
+  }
+
   async createRole(data: CreateRoleData): Promise<IRole> {
     try {
       // Check if role already exists
@@ -43,6 +53,25 @@ class RoleService extends BaseService<IRole> {
       return roles;
     } catch (error) {
       throw new AppError('Error fetching roles', 500);
+    }
+  }
+
+  async updateRole(id: string, data: CreateRoleData): Promise<IRole> {
+    try {
+      const role = await this.model
+        .findByIdAndUpdate(id, data, { new: true })
+        .populate('permissions');
+
+      if (!role) {
+        throw new AppError('Role not found', 404);
+      }
+
+      return role;
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Error updating role', 500);
     }
   }
 }

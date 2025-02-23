@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { AppError } from '../../../middleware/errorHandler';
 import { BaseController } from '../../../utils/baseController';
+import { IPermission } from '../models/permission.model';
 import roleService from '../services/role.service';
 
 class RoleController extends BaseController {
@@ -11,22 +11,18 @@ class RoleController extends BaseController {
     // Bind methods to preserve 'this' context
     this.createRole = this.createRole.bind(this);
     this.getAllRoles = this.getAllRoles.bind(this);
+    this.updateRole = this.updateRole.bind(this);
   }
 
   async createRole(req: Request, res: Response, next: NextFunction): Promise<void> {
     await this.handleRequest(req, res, next, async () => {
-      // Check if user is admin
-      if (req.user?.role !== 'admin') {
-        throw new AppError('Unauthorized - Admin access required', 403);
-      }
-
       const { name, permissions } = req.body;
       const role = await this.service.createRole({ name, permissions });
 
       return {
         id: role._id,
         name: role.name,
-        permissions: role.permissions.map((permission) => ({
+        permissions: (role.permissions as IPermission[]).map((permission) => ({
           id: permission._id,
           name: permission.name,
           description: permission.description,
@@ -39,16 +35,11 @@ class RoleController extends BaseController {
 
   async getAllRoles(req: Request, res: Response, next: NextFunction): Promise<void> {
     await this.handleRequest(req, res, next, async () => {
-      // Check if user is admin
-      if (req.user?.role !== 'admin') {
-        throw new AppError('Unauthorized - Admin access required', 403);
-      }
-
       const roles = await this.service.getAllRoles();
       return roles.map((role) => ({
         id: role._id,
         name: role.name,
-        permissions: role.permissions.map((permission) => ({
+        permissions: (role.permissions as IPermission[]).map((permission) => ({
           id: permission._id,
           name: permission.name,
           description: permission.description,
@@ -56,6 +47,27 @@ class RoleController extends BaseController {
         createdAt: role.createdAt,
         updatedAt: role.updatedAt,
       }));
+    });
+  }
+
+  async updateRole(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const { id } = req.params;
+      const { name, permissions } = req.body;
+
+      const role = await this.service.updateRole(id, { name, permissions });
+
+      return {
+        id: role._id,
+        name: role.name,
+        permissions: (role.permissions as IPermission[]).map((permission) => ({
+          id: permission._id,
+          name: permission.name,
+          description: permission.description,
+        })),
+        createdAt: role.createdAt,
+        updatedAt: role.updatedAt,
+      };
     });
   }
 }

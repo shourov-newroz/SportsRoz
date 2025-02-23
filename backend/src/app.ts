@@ -18,6 +18,7 @@ import logger, { stream } from './utils/logger';
 
 // Import routes
 import authRouter from './modules/auth/routes/auth.routes';
+import permissionRouter from './modules/auth/routes/permission.routes';
 import roleRouter from './modules/auth/routes/role.routes';
 import userRouter from './modules/users/routes/user.routes';
 
@@ -145,7 +146,8 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // Load routes
-app.use(`${apiVersion}/admin/roles`, roleRouter);
+app.use(`${apiVersion}/roles`, roleRouter);
+app.use(`${apiVersion}/permissions`, permissionRouter);
 
 // Mount auth routes
 app.use(`${apiVersion}/`, authRouter);
