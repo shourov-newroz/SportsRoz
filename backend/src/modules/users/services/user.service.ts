@@ -58,6 +58,31 @@ class UserService extends BaseService<IUser> {
       throw new AppError('Error updating profile', 500);
     }
   }
+
+  async getAllApproved(): Promise<IUser[]> {
+    return this.model.find({ isApproved: true });
+  }
+
+  async getAllPending(): Promise<IUser[]> {
+    return this.model.find({ isApproved: false });
+  }
+
+  async updateStatus(userId: string, isApproved: boolean): Promise<IUser | null> {
+    return this.model.findByIdAndUpdate(userId, { isApproved }, { new: true });
+  }
+
+  async updateRole(userId: string, role: string): Promise<IUser | null> {
+    return this.model.findByIdAndUpdate(userId, { role }, { new: true });
+  }
+
+  async getAllUsers(isApproved: boolean): Promise<IUser[]> {
+    try {
+      const users = await this.model.find({ isApproved });
+      return users;
+    } catch (error) {
+      throw new AppError('Error fetching users', 500);
+    }
+  }
 }
 
 export default new UserService();

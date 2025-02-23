@@ -9,6 +9,66 @@ router.use(protect);
 
 /**
  * @swagger
+ * /users:
+ *   get:
+ *     summary: Get users based on approval status
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: approved
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: Filter users by approval status
+ *     responses:
+ *       200:
+ *         description: List of users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       userId:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       jerseyName:
+ *                         type: string
+ *                       officeId:
+ *                         type: string
+ *                       sportType:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       dateOfBirth:
+ *                         type: string
+ *                         format: date
+ *                       role:
+ *                         type: string
+ *                       gender:
+ *                         type: string
+ *                       contactNumber:
+ *                         type: string
+ *                       profilePicture:
+ *                         type: string
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Unauthorized to access this resource
+ */
+router.route('/').get(userController.getAllUsers);
+
+/**
+ * @swagger
  * /users/{id}:
  *   get:
  *     summary: Get user profile
@@ -65,7 +125,113 @@ router.use(protect);
  *       404:
  *         description: User not found
  */
-router.route('/:id').get(protect, userController.getProfile);
+router.route('/:id').get(userController.getProfile);
+
+/**
+ * @swagger
+ * /users/approved:
+ *   get:
+ *     summary: Get all approved users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of approved users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       userId:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       jerseyName:
+ *                         type: string
+ *                       officeId:
+ *                         type: string
+ *                       sportType:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       dateOfBirth:
+ *                         type: string
+ *                         format: date
+ *                       role:
+ *                         type: string
+ *                       gender:
+ *                         type: string
+ *                       contactNumber:
+ *                         type: string
+ *                       profilePicture:
+ *                         type: string
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Unauthorized to view approved users
+ */
+router.route('/approved').get(userController.getAllApproved);
+
+/**
+ * @swagger
+ * /users/pending:
+ *   get:
+ *     summary: Get all pending users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of pending users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       userId:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       jerseyName:
+ *                         type: string
+ *                       officeId:
+ *                         type: string
+ *                       sportType:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       dateOfBirth:
+ *                         type: string
+ *                         format: date
+ *                       role:
+ *                         type: string
+ *                       gender:
+ *                         type: string
+ *                       contactNumber:
+ *                         type: string
+ *                       profilePicture:
+ *                         type: string
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Unauthorized to view pending users
+ */
+router.route('/pending').get(userController.getAllPending);
 
 /**
  * @swagger
@@ -173,5 +339,11 @@ router
     ],
     userController.updateProfile,
   );
+
+// Update user status
+router.route('/:id/update-status').patch(userController.updateStatus);
+
+// Update user role
+router.route('/:id/update-role').patch(userController.updateRole);
 
 export default router;

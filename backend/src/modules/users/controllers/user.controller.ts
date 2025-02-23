@@ -12,6 +12,11 @@ class UserController extends BaseController {
     // Bind methods to preserve 'this' context
     this.getProfile = this.getProfile.bind(this);
     this.updateProfile = this.updateProfile.bind(this);
+    this.getAllApproved = this.getAllApproved.bind(this);
+    this.getAllPending = this.getAllPending.bind(this);
+    this.updateStatus = this.updateStatus.bind(this);
+    this.updateRole = this.updateRole.bind(this);
+    this.getAllUsers = this.getAllUsers.bind(this);
   }
 
   private formatValidationErrors(errors: ValidationError[]): Record<string, string> {
@@ -88,6 +93,56 @@ class UserController extends BaseController {
         contactNumber: updatedUser.contactNumber,
         profilePicture: updatedUser.profilePicture,
       };
+    });
+  }
+
+  async getAllApproved(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const users = await this.service.getAllApproved();
+      return users;
+    });
+  }
+
+  async getAllPending(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const users = await this.service.getAllPending();
+      return users;
+    });
+  }
+
+  async updateStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const userId = req.params.id;
+      const { isApproved } = req.body;
+      const updatedUser = await this.service.updateStatus(userId, isApproved);
+
+      if (!updatedUser) {
+        throw new AppError('User not found', 404);
+      }
+
+      return updatedUser;
+    });
+  }
+
+  async updateRole(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const userId = req.params.id;
+      const { role } = req.body;
+      const updatedUser = await this.service.updateRole(userId, role);
+
+      if (!updatedUser) {
+        throw new AppError('User not found', 404);
+      }
+
+      return updatedUser;
+    });
+  }
+
+  async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const { approved } = req.query;
+      const users = await this.service.getAllUsers(approved === 'true');
+      return users;
     });
   }
 }

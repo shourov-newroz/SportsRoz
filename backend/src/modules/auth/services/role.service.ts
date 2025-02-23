@@ -74,6 +74,23 @@ class RoleService extends BaseService<IRole> {
       throw new AppError('Error updating role', 500);
     }
   }
+
+  async deleteRole(id: string): Promise<IRole | null> {
+    try {
+      const role = await this.model.findByIdAndDelete(id);
+
+      if (!role) {
+        throw new AppError('Role not found', 404);
+      }
+
+      return role;
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Error deleting role', 500);
+    }
+  }
 }
 
 export default new RoleService();

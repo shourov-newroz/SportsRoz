@@ -4,6 +4,10 @@ const BACKEND_ENDPOINTS = {
   USERS: {
     GET_PROFILE: (id: string) => `/users/${id}`,
     UPDATE_PROFILE: (id: string) => `/users/${id}`,
+    GET_ALL_APPROVED: '/users?approved=true',
+    GET_ALL_PENDING: '/users?approved=false',
+    UPDATE_STATUS: (id: string) => `/users/${id}/update-status`,
+    UPDATE_ROLE: (id: string) => `/users/${id}/update-role`,
   },
   AUTH: {
     LOGIN: '/public/auth/login',
@@ -21,6 +25,7 @@ const BACKEND_ENDPOINTS = {
     CREATE: '/roles',
     GET_ALL: '/roles',
     UPDATE: (id: string) => `/roles/${id}`,
+    DELETE: (id: string) => `/roles/${id}`,
   },
   PERMISSIONS: {
     GET_ALL: '/permissions',

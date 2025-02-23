@@ -1,9 +1,9 @@
 import BACKEND_ENDPOINTS from '@/api/endpoints';
-import { sendPostRequest, sendPutRequest } from '@/config/swrConfig';
+import { sendDeleteRequest, sendPostRequest, sendPutRequest } from '@/config/swrConfig';
 import { IApiResponse } from '@/types/common';
 import { IPermission } from '@/types/permission.types';
 import { CreateRoleData, IRole } from '@/types/role.types';
-import { EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   Badge,
   Button,
@@ -253,7 +253,7 @@ const RolesPage: React.FC = () => {
     IApiResponse<IPermission[]>
   >(BACKEND_ENDPOINTS.PERMISSIONS.GET_ALL);
 
-  // Create and update role mutations
+  // Create, update, and delete role mutations
   const { trigger: createRole, isMutating: isCreating } = useSWRMutation(
     BACKEND_ENDPOINTS.ROLES.CREATE,
     sendPostRequest
@@ -262,6 +262,11 @@ const RolesPage: React.FC = () => {
   const { trigger: updateRole, isMutating: isUpdating } = useSWRMutation(
     BACKEND_ENDPOINTS.ROLES.UPDATE(selectedRole?.id || ''),
     sendPutRequest
+  );
+
+  const { trigger: deleteRole, isMutating: isDeleting } = useSWRMutation(
+    selectedRole ? BACKEND_ENDPOINTS.ROLES.DELETE(selectedRole.id) : null,
+    sendDeleteRequest
   );
 
   const getSelectedCount = (permissions: IPermission[]) => {
@@ -361,6 +366,21 @@ const RolesPage: React.FC = () => {
     setIsEditModalVisible(true);
   };
 
+  const handleDeleteRole = async (role: IRole) => {
+    try {
+      setSelectedRole(role);
+      await deleteRole();
+      message.success('Role deleted successfully');
+      mutate();
+    } catch (error) {
+      if (error instanceof Error) {
+        message.error(error.message || 'Failed to delete role');
+      } else {
+        message.error('Failed to delete role');
+      }
+    }
+  };
+
   const columns: ColumnsType<IRole> = [
     {
       title: 'Name',
@@ -390,11 +410,20 @@ const RolesPage: React.FC = () => {
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Tooltip title="View">
-            <Button icon={<EyeOutlined />} onClick={() => handleViewRole(record)} type="link" />
+          <Tooltip title="View Role">
+            <Button type="text" icon={<EyeOutlined />} onClick={() => handleViewRole(record)} />
           </Tooltip>
-          <Tooltip title="Edit">
-            <Button icon={<EditOutlined />} onClick={() => handleEditRole(record)} type="link" />
+          <Tooltip title="Edit Role">
+            <Button type="text" icon={<EditOutlined />} onClick={() => handleEditRole(record)} />
+          </Tooltip>
+          <Tooltip title="Delete Role">
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteRole(record)}
+              loading={isDeleting && selectedRole?.id === record.id}
+            />
           </Tooltip>
         </Space>
       ),

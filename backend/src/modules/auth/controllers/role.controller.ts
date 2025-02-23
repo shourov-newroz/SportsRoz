@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { AppError } from '../../../middleware/errorHandler';
 import { BaseController } from '../../../utils/baseController';
 import { IPermission } from '../models/permission.model';
 import roleService from '../services/role.service';
@@ -12,6 +13,7 @@ class RoleController extends BaseController {
     this.createRole = this.createRole.bind(this);
     this.getAllRoles = this.getAllRoles.bind(this);
     this.updateRole = this.updateRole.bind(this);
+    this.deleteRole = this.deleteRole.bind(this);
   }
 
   async createRole(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -68,6 +70,19 @@ class RoleController extends BaseController {
         createdAt: role.createdAt,
         updatedAt: role.updatedAt,
       };
+    });
+  }
+
+  async deleteRole(req: Request, res: Response, next: NextFunction): Promise<void> {
+    await this.handleRequest(req, res, next, async () => {
+      const { id } = req.params;
+      const role = await this.service.deleteRole(id);
+
+      if (!role) {
+        throw new AppError('Role not found', 404);
+      }
+
+      return { message: 'Role deleted successfully' };
     });
   }
 }

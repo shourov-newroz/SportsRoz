@@ -245,4 +245,31 @@ router.put(
   roleController.updateRole,
 );
 
+/**
+ * @swagger
+ * /roles/{id}:
+ *   delete:
+ *     summary: Delete a role (Admin only)
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the role to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Role deleted successfully
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to delete roles
+ *       404:
+ *         description: Role not found
+ */
+router.delete('/:id', roleController.deleteRole);
+
 export default router;

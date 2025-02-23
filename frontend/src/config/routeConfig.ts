@@ -88,6 +88,20 @@ export const routeConfig = {
     requiredPermissions: [],
   },
 
+  adminUserManagement: {
+    routePath: '/admin/user-management',
+    path: () => '/admin/user-management',
+    title: 'User Management',
+    requiredPermissions: [],
+  },
+
+  adminUserApproval: {
+    routePath: '/admin/user-approval',
+    path: () => '/admin/user-approval',
+    title: 'Pending Users',
+    requiredPermissions: [],
+  },
+
   // Not Found Route
   notFound: {
     routePath: '*',
