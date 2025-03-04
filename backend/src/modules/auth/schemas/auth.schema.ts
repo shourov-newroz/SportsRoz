@@ -30,3 +30,16 @@ export const loginSchema = z.object({
     password: z.string().min(1, 'Password is required'),
   }),
 });
+
+export const updateUserSchema = z.object({
+  name: z.string().min(1, 'Full name is required').optional(),
+  jerseyName: z.string().optional(),
+  sportType: z.array(z.string()).optional(),
+  dateOfBirth: z
+    .string()
+    .transform((str) => new Date(str))
+    .optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  contactNumber: z.string().optional(),
+  profilePicture: z.string().url('Invalid profile picture URL').optional(),
+});
